@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+:root {
+  font-family: Poppins, sans-serif;
+  /* background: #000 url('CodBackGrad.png') no-repeat center center;
+  background-size: 100vw 100vh; */
+}
+
+* {
+  
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;  /* Firefox */
+}
