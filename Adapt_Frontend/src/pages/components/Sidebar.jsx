@@ -2,7 +2,7 @@ import React from 'react'
 import { assets, dummyUserData } from '../assets/assets'
 import { useNavigate, Link } from 'react-router-dom';
 import MenuItems from './MenuItems';
-import { CirclePlus, LogOut } from 'lucide-react';
+import { CirclePlus, LogOut, Briefcase } from 'lucide-react';
 import { UserButton, useClerk } from '@clerk/clerk-react';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -40,6 +40,27 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         >
           <CirclePlus className='w-5 h-5' />
           Create Post
+        </Link>
+
+        {/* Botão para Criar Vaga */}
+        <Link
+          to='/job-creation'
+          className='flex items-center justify-center gap-2 py-2.5 mt-3 mx-6 rounded-lg 
+          border border-purple-300 text-purple-600 bg-white hover:bg-purple-50 
+          active:scale-95 transition cursor-pointer'
+        >
+          <Briefcase className='w-5 h-5' />
+          Criar Vaga
+        </Link>
+        {/* Botão para Criar Vaga */}
+        <Link
+          to='/empresa'
+          className='flex items-center justify-center gap-2 py-2.5 mt-3 mx-6 rounded-lg 
+          border border-purple-300 text-purple-600 bg-white hover:bg-purple-50 
+          active:scale-95 transition cursor-pointer'
+        >
+          <Briefcase className='w-5 h-5' />
+          Criar Empresa
         </Link>
       </div>
 

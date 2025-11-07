@@ -20,7 +20,7 @@ const ChatBox = () => {
 
   return user && (
     <div className='flex flex-col h-screen'>
-      <div className='flex items-center gap-2 p-2 md:px-10 xl:pl-42 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-300'>
+      <div className='flex items-center gap-2 p-2 md:px-10 xl:pl-20 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-300'>
         <img src={user.profile_picture} alt="" className='size-8 rounded-full'/>
         <div>
           <p className='font-medium'>{user.full_name}</p>

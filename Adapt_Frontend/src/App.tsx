@@ -1,7 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import "../src/pages/home/home.scss";
-import Home from "./pages/home/home";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/home/Home";
 import Login from "./pages/Login/Login";
 import Feed from "./pages/Feed/Feed";
 import Messages from "./pages/Messages/Messages";
@@ -13,6 +11,9 @@ import CreatePost from "./pages/CreatePost/CreatePost";
 import {useUser} from "@clerk/clerk-react";
 import Layout from "./pages/Layout/Layout";
 import { Toaster } from "react-hot-toast";
+import JobCreation from "./pages/jobCreation/JobCreation";
+import Empresa from "./pages/Empresa/Empresa";
+import CompanyProfile from "./pages/CompanyProfile/CompanyProfile";
 
 function App() {
   const {user} = useUser();
@@ -30,6 +31,10 @@ function App() {
       <Route path="profile" element={<Profile />} />
       <Route path="profile/:profileId" element={<Profile />} />
       <Route path="create-post" element={<CreatePost />} />
+      <Route path="job-creation" element={<JobCreation />} />
+      <Route path="empresa" element={<Empresa />} />
+      <Route path="company" element={<CompanyProfile />} />
+      <Route path="/company/:companyId" element={<CompanyProfile />} />
       </Route>
     </Routes>
     </>
