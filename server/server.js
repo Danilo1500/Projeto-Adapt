@@ -20,19 +20,6 @@ app.get('/', (req, res)=> res.send('Server is running'))
 app.use('/api/inngest', serve({ client: inngest, functions }))
 app.use('/api/user', userRouter)
 
-app.get("/test-mongo", async (req, res) => {
-  try {
-    const newUser = await User.create({
-      _id: "123",
-      email: "test@gmail.com",
-      full_name: "Test User",
-    });
-
-    res.json({ success: true, newUser });
-  } catch (e) {
-    res.json({ success: false, error: e.message });
-  }
-});
 
 const PORT = process.env.PORT || 4000;
 
