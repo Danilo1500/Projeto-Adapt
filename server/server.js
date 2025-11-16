@@ -12,6 +12,7 @@ const app = express();
 
 await connectDB();
 
+
 app.use(express.json());
 app.use(cors());
 app.use(clerkMiddleware());
