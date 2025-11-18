@@ -2,7 +2,7 @@ import React from 'react'
 import { assets, dummyUserData } from '../assets/assets'
 import { useNavigate, Link } from 'react-router-dom';
 import MenuItems from './MenuItems';
-import { CirclePlus, LogOut, Briefcase } from 'lucide-react';
+import { CirclePlus, LogOut, Briefcase, Building2 } from 'lucide-react';
 import { UserButton, useClerk } from '@clerk/clerk-react';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -45,10 +45,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Botão para Criar Vaga */}
         <Link
           to='/job-creation'
-          className='flex items-center justify-center gap-2 py-2.5 mt-3 mx-6 rounded-lg 
-          border border-purple-300 text-purple-600 bg-white hover:bg-purple-50 
-          active:scale-95 transition cursor-pointer'
+          className='flex items-center justify-center gap-2 py-2.5 mt-6 mx-6 rounded-lg 
+          bg-gradient-to-r from-indigo-500 to-purple-600 
+          hover:from-indigo-700 hover:to-purple-800 
+          active:scale-95 transition text-white cursor-pointer'
         >
+          <CirclePlus className='w-5 h-5' />
           <Briefcase className='w-5 h-5' />
           Criar Vaga
         </Link>
@@ -59,7 +61,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           border border-purple-300 text-purple-600 bg-white hover:bg-purple-50 
           active:scale-95 transition cursor-pointer'
         >
-          <Briefcase className='w-5 h-5' />
+          <CirclePlus className='w-5 h-5' />
+          <Building2 className='w-5 h-5' />
           Criar Empresa
         </Link>
       </div>

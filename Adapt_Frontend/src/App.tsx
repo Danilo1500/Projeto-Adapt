@@ -22,7 +22,7 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      getToken().then((token) => console.log("TOKEN:", token));
+      getToken().then((token) => console.log(token));
     }
   }, [user]);
 
