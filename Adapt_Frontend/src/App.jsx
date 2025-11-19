@@ -15,16 +15,25 @@ import JobCreation from "./pages/jobCreation/JobCreation";
 import Empresa from "./pages/Empresa/Empresa";
 import CompanyProfile from "./pages/CompanyProfile/CompanyProfile";
 import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "./features/user/userSlice";
 
 function App() {
   const { user } = useUser();
   const { getToken } = useAuth();
 
+  const dispatch = useDispatch()
+
   useEffect(() => {
-    if (user) {
-      getToken().then((token) => console.log(token));
+    const fetchData = async () => {
+      if (user) {
+      const token = await getToken()
+      dispatch(fetchUser(token))
+      }
     }
-  }, [user]);
+    fetchData()
+    
+  }, [user, getToken, dispatch]);
 
   return (
     <>

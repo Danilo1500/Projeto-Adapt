@@ -5,6 +5,8 @@ import "./styles/index.css"; // <-- Certifique-se de que este import está prese
 import { BrowserRouter } from "react-router-dom";
 import { ClerkProvider } from '@clerk/clerk-react';
 import { ptBR } from "@clerk/localizations";
+import { Provider } from 'react-redux';
+import { store } from './app/store.js';
 
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -19,7 +21,9 @@ if (rootElement) {
       <ClerkProvider publishableKey={PUBLISHABLE_KEY}
       localization={ptBR}>
         <BrowserRouter>
-          <App />
+         <Provider store={store}>
+            <App />
+         </Provider>
         </BrowserRouter>
       </ClerkProvider>
   );
