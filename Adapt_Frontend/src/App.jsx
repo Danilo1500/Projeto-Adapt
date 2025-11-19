@@ -21,6 +21,7 @@ import { fetchConnections } from "./features/connections/connectionsSlice";
 import { addMessage } from "./features/messages/messagesSlice";
 import Notification from "./pages/components/Notification";
 
+
 function App() {
   const { user } = useUser();
   const { getToken } = useAuth();
