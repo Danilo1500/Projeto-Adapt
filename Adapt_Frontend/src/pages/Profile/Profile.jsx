@@ -28,7 +28,7 @@ const Profile = () => {
       const { data } = await api.post(`/api/user/profiles`, {profileId}, {
         headers: {Authorization: `Bearer ${token}`}
       })
-      if(data.sucess){
+      if(data.success){
         setUser(data.profile)
         setPosts(data.posts)
       }else{

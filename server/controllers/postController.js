@@ -52,18 +52,21 @@ export const addPost = async (req, res) => {
 export const getFeedPosts = async (req, res) => {
     try {
         const { userId } = req.auth();
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
 
         // User connections and followings
-        const userIds = [userId, ...user.connections, ...user.following]
-        const posts = await Post.find({ user: { $in: userIds } }).populate('user').sort({ createdAt: -1 });
+        const userIds = [userId, ...user.connections, ...user.following];
+        const posts = await Post.find({ user: { $in: userIds } })
+            .populate("user", "full_name username profile_picture") // Popula os dados do usuário
+            .populate("likes_count", "full_name username") // Popula os dados dos usuários que curtiram
+            .sort({ createdAt: -1 });
 
         res.json({ success: true, posts });
     } catch (error) {
         console.error(error);
         res.json({ success: false, message: error.message });
     }
-}
+};
 
 // Like Post
 export const likePost = async (req, res) => {
@@ -73,18 +76,21 @@ export const likePost = async (req, res) => {
 
         const post = await Post.findById(postId);
 
-        if(post.likes_count.includes(userId)){
-            post.likes_count = post.likes_count.filter(user => user !== userId)
-            await post.save()
-            res.json({ success: true, message: "Post unliked" });
-        }else{
-            post.likes_count.push(userId)
-            await post.save()
-            res.json({ success: true, message: "Post liked" });
+        if (!post) {
+            return res.status(404).json({ success: false, message: "Post não encontrado" });
         }
 
+        if (post.likes_count.includes(userId)) {
+            post.likes_count = post.likes_count.filter((user) => user !== userId);
+            await post.save();
+            res.json({ success: true, message: "Post descurtido" });
+        } else {
+            post.likes_count.push(userId);
+            await post.save();
+            res.json({ success: true, message: "Post curtido" });
+        }
     } catch (error) {
         console.error(error);
         res.json({ success: false, message: error.message });
     }
-}
+};
