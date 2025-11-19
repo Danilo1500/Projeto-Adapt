@@ -12,6 +12,16 @@ const userSchema = new mongoose.Schema({
   followers: [{ type: String, ref: 'User' }],
   following: [{ type: String, ref: 'User' }],
   connections: [{ type: String, ref: 'User' }],
+  languages: [{ type: String }], // Adicionado
+  frameworks: [{ type: String }], // Adicionado
+  certificates: [
+    {
+      title: { type: String },
+      issuer: { type: String },
+      date: { type: String },
+      file: { type: Object },
+    },
+  ], // Adicionado
 }, { timestamps: true, minimize: false })
 
 const User = mongoose.model('User', userSchema)
