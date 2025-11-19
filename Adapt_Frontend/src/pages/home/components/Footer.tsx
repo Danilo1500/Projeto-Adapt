@@ -19,26 +19,26 @@ export function Footer() {
               Conectando empresas aos melhores profissionais de TI do mercado.
             </p>
             <div className="flex gap-3">
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Github className="h-4 w-4" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Linkedin className="h-4 w-4" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Twitter className="h-4 w-4" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Mail className="h-4 w-4" />
