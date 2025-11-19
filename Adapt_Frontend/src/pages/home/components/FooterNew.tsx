@@ -1,40 +1,7 @@
 import { motion } from "framer-motion";
 import { Instagram, Linkedin, Twitter, Mail } from "lucide-react";
-import svgPaths from "../imports/svg-dph6lrz7am";
 
-function AdaptLogoSmall() {
-  return (
-    <div className="absolute inset-[2.09%_3.15%_-84.31%_-36.48%]" data-name="layer1">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 278 412">
-        <g id="layer1">
-          <path d={svgPaths.p1c82e900} fill="url(#paint0_linear_footer)" id="rect1132" />
-          <path d={svgPaths.p17514840} fill="url(#paint1_linear_footer)" id="rect1137" />
-          <path d={svgPaths.p2eee5ec0} fill="var(--fill-0, white)" id="path235" />
-          <path d={svgPaths.p11181000} fill="var(--fill-0, white)" id="path233" />
-          <g id="g18">
-            <path d={svgPaths.p8f04e70} fill="var(--fill-0, #000055)" id="path6" />
-            <path d={svgPaths.p1ba38780} fill="var(--fill-0, white)" id="path2" />
-            <path d={svgPaths.pc4d3b80} fill="var(--fill-0, white)" id="path3" />
-            <path d={svgPaths.p1ecc1800} fill="var(--fill-0, #2A2AFF)" id="path4" />
-            <path d={svgPaths.p3153d000} fill="var(--fill-0, #5555FF)" id="path5" />
-            <path d={svgPaths.p112d8440} fill="var(--fill-0, #8080FF)" id="path7" />
-            <path d={svgPaths.p1ace5b80} fill="var(--fill-0, white)" id="path8" />
-          </g>
-        </g>
-        <defs>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_footer" x1="185.453" x2="185.453" y1="49.6226" y2="197.991">
-            <stop />
-            <stop offset="1" stopColor="#4600FF" />
-          </linearGradient>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_footer" x1="172.501" x2="172.501" y1="68.3283" y2="196.716">
-            <stop />
-            <stop offset="1" stopColor="#4600FF" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-  );
-}
+// ❌ REMOVIDO: function AdaptLogoSmall() { ... }
 
 export function FooterNew() {
   const links = {
