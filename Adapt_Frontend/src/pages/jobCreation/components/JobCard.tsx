@@ -1,4 +1,3 @@
-import React from "react";
 import { JobData } from "../JobCreation";
 
 type Props = {
