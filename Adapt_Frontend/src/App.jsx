@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/home/Home";
 import Login from "./pages/Login/Login";
 import Feed from "./pages/Feed/Feed";
@@ -10,17 +10,22 @@ import Profile from "./pages/Profile/Profile";
 import CreatePost from "./pages/CreatePost/CreatePost";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import Layout from "./pages/Layout/Layout";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import JobCreation from "./pages/jobCreation/JobCreation";
 import Empresa from "./pages/Empresa/Empresa";
 import CompanyProfile from "./pages/CompanyProfile/CompanyProfile";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { fetchUser } from "./features/user/userSlice";
+import { fetchConnections } from "./features/connections/connectionsSlice";
+import { addMessage } from "./features/messages/messagesSlice";
+import Notification from "./pages/components/Notification";
 
 function App() {
   const { user } = useUser();
   const { getToken } = useAuth();
+  const { pathname } = useLocation()
+  const pathnameRef = useRef(pathname)
 
   const dispatch = useDispatch()
 
@@ -29,11 +34,37 @@ function App() {
       if (user) {
       const token = await getToken()
       dispatch(fetchUser(token))
+      dispatch(fetchConnections(token))
       }
     }
     fetchData()
     
   }, [user, getToken, dispatch]);
+
+  useEffect(()=>{
+    pathnameRef.current = pathname
+  },[pathname])
+
+  useEffect(()=>{
+    if(user){
+      const eventSource = new EventSource(import.meta.env.VITE_BASEURL + '/api/message/' + user.id);
+
+      eventSource.onmessage = (event)=>{
+        const message = JSON.parse(event.data)
+
+        if(pathnameRef.current === ('/messages/' + message.from_user_id._id)){
+          dispatch(addMessage(message))
+        }else{
+          toast.custom((t)=>(
+            <Notification t={t} message={message}/>
+          ), {position: "bottom-right"})
+        }
+      }
+      return ()=>{
+        eventSource.close()
+      }
+    }
+  },[user, dispatch])
 
   return (
     <>

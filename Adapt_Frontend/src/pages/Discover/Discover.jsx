@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { dummyConnectionsData } from "../assets/assets";
 import UserCard from "../components/UserCard";
@@ -6,6 +6,11 @@ import CompanyCard from "../components/CompanyCard";
 import Loading from "../components/LoadingWhite";
 import JobCard from "../jobCreation/components/JobCard";
 import { dummyJobs } from "../jobCreation/data/dummyJobs";
+import api from "../../api/axios";
+import { useAuth } from "@clerk/clerk-react";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "../../features/user/userSlice";
+import toast from "react-hot-toast";
 
 // Dados simulados de empresas (substitua depois pela API real)
 const dummyCompaniesData = [
@@ -39,32 +44,41 @@ const dummyCompaniesData = [
 ];
 
 const Discover = () => {
-  const [input, setInput] = useState("");
-  const [users, setUsers] = useState(dummyConnectionsData);
+
+  const dispatch = useDispatch()
+  const [input, setInput] = useState('');
+  const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState(dummyCompaniesData);
   const [jobs, setJobs] = useState(dummyJobs);
   const [loading, setLoading] = useState(false);
+  const { getToken } =  useAuth()
 
   const tabs = ["vagas", "pessoas", "empresas"];
   const [activeTab, setActiveTab] = useState("pessoas");
 
   const handleSearch = async (e) => {
     if (e.key === "Enter") {
-      // ao digitar e pressionar Enter → mostra loading e esconde tudo
-      setLoading(true);
-      setUsers([]);
-      setCompanies([]);
-      setJobs([]);
-
-      // simula um delay de carregamento
-      setTimeout(() => {
-        setUsers(dummyConnectionsData);
-        setCompanies(dummyCompaniesData);
-        setJobs(dummyJobs);
-        setLoading(false);
-      }, 1500);
+      try {
+        setUsers([])
+        setLoading(true)
+        const { data } = await api.post('/api/user/discover', {input}, {
+          headers: {Authorization: `Bearer ${await getToken()}` }
+        })
+        data.success ? setUsers(data.users) : toast.error(data.message)
+        setLoading(false)
+        setInput('')
+      } catch (error) {
+        toast.error(error.message)
+      }
+      setLoading(false)
     }
-  };
+  }
+
+  useEffect(()=>{
+    getToken().then((token)=>{
+      dispatch(fetchUser(token))
+    })
+  }, [])
 
   return (
     <div className="h-full overflow-y-auto bg-gradient-to-b from-slate-50 to-white no-scrollbar">
