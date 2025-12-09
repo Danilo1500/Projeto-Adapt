@@ -25,8 +25,13 @@ O projeto foi desenvolvido com foco acadêmico e prático, aplicando conceitos r
 - JavaScript  
 - CSS  
 - HTML5  
-- MySQL (quando aplicável)  
-- PHP (quando aplicável)  
+- MySQL 
+- Node.js
+- React.js
+- MongoDB
+- Inngest
+- Vercel
+- Imagekit
 
 ---
 
