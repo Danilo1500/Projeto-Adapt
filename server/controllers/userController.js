@@ -9,34 +9,38 @@ import fs from 'fs'
 // Get User Data using userId
 export const getUserData = async (req, res) => {
     try {
-        const { userId } = req.auth()
-        const user = await User.findById(userId)
+        const { userId } = req.auth();
+        const user = await User.findById(userId);
         if (!user) {
-            return res.json({ success: false, message: "User not found" })
+            console.error("User not found for userId:", userId);
+            return res.status(404).json({ success: false, message: "User not found" });
         }
-        res.json({ success: true, user })
+        res.json({ success: true, user });
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message })
+        console.error("Error in getUserData:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
 // Update User Data
 export const updateUserData = async (req, res) => {
     try {
-        const { userId } = req.auth()
-        let {username, bio, location, full_name } = req.body;
+        const { userId } = req.auth();
+        let { username, bio, location, full_name } = req.body;
 
+        const tempUser = await User.findById(userId);
+        if (!tempUser) {
+            console.error("User not found for update, userId:", userId);
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
 
-        const tempUser = await User.findById(userId)
+        !username && (username = tempUser.username);
 
-        !username && (username = tempUser.username)
-
-        if(tempUser.username !== username) {
-            const user = await User.findOne({ username })
-            if(user) {
-                // we will not change the username if it is already taken
-                username = tempUser.username
+        if (tempUser.username !== username) {
+            const user = await User.findOne({ username });
+            if (user) {
+                console.warn("Username already taken:", username);
+                username = tempUser.username; // Keep the old username
             }
         }
 
@@ -44,55 +48,61 @@ export const updateUserData = async (req, res) => {
             username,
             bio,
             location,
-            full_name
+            full_name,
+        };
+
+        const profile = req.files.profile && req.files.profile[0];
+        const cover = req.files.cover && req.files.cover[0];
+
+        if (profile) {
+            try {
+                const buffer = fs.readFileSync(profile.path);
+                const response = await imagekit.upload({
+                    file: buffer,
+                    fileName: profile.originalname,
+                });
+
+                const url = imagekit.url({
+                    path: response.filePath,
+                    transformation: [
+                        { quality: "auto" },
+                        { format: "webp" },
+                        { width: "512" },
+                    ],
+                });
+                updatedData.profile_picture = url;
+            } catch (uploadError) {
+                console.error("Error uploading profile picture:", uploadError);
+            }
         }
 
-        const profile = req.files.profile && req.files.profile[0]
-        const cover = req.files.cover && req.files.cover[0]
+        if (cover) {
+            try {
+                const buffer = fs.readFileSync(cover.path);
+                const response = await imagekit.upload({
+                    file: buffer,
+                    fileName: cover.originalname,
+                });
 
-        if(profile) {
-            const buffer = fs.readFileSync(profile.path)
-            const response = await imagekit.upload({
-                file : buffer,
-                fileName : profile.originalname,
-            })
-
-            const url = imagekit.url({
-                path : response.filePath,
-                transformation : [
-                    {quality: 'auto'},
-                    {format: 'webp'},
-                    {width : '512'}
-                ]
-            })
-            updatedData.profile_picture = url;
+                const url = imagekit.url({
+                    path: response.filePath,
+                    transformation: [
+                        { quality: "auto" },
+                        { format: "webp" },
+                        { width: "1280" },
+                    ],
+                });
+                updatedData.cover_photo = url;
+            } catch (uploadError) {
+                console.error("Error uploading cover photo:", uploadError);
+            }
         }
 
-        if(cover) {
-            const buffer = fs.readFileSync(cover.path)
-            const response = await imagekit.upload({
-                file : buffer,
-                fileName : profile.originalname,
-            })
-
-            const url = imagekit.url({
-                path : response.filePath,
-                transformation : [
-                    {quality: 'auto'},
-                    {format: 'webp'},
-                    {width : '1280'}
-                ]
-            })
-            updatedData.cover_photo = url;
-        }
-
-        const user = await User.findByIdAndUpdate(userId, updatedData, { new : true })
-
-        res.json({ success: true, user, message: "Profile updated successfully" })
-
+        const user = await User.findByIdAndUpdate(userId, updatedData, { new: true });
+        res.json({ success: true, user, message: "Profile updated successfully" });
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message })
+        console.error("Error in updateUserData:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -110,6 +120,7 @@ export const discoverUsers = async (req, res) => {
                     { email: new RegExp(input, 'i') },
                     { full_name: new RegExp(input, 'i') },
                     { location: new RegExp(input, 'i') },
+                    { bio: new RegExp(input, "i") },
                 ]
             }
         )
@@ -127,28 +138,36 @@ export const discoverUsers = async (req, res) => {
 
 export const followUser = async (req, res) => {
     try {
-        const { userId } = req.auth()
+        const { userId } = req.auth();
         const { id } = req.body;
 
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
+        if (!user) {
+            console.error("User not found for follow, userId:", userId);
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
 
-        if(user.following.includes(id)){
-            return res.json({ success: false, message: "You are already following this user" })
+        if (user.following.includes(id)) {
+            console.warn("User already following, userId:", userId, "targetId:", id);
+            return res.status(400).json({ success: false, message: "You are already following this user" });
         }
 
         user.following.push(id);
-        await user.save()
+        await user.save();
 
+        const toUser = await User.findById(id);
+        if (!toUser) {
+            console.error("Target user not found for follow, targetId:", id);
+            return res.status(404).json({ success: false, message: "Target user not found" });
+        }
 
-        const toUser = await User.findById(id)
-        toUser.followers.push(userId)
-        await toUser.save()
+        toUser.followers.push(userId);
+        await toUser.save();
 
-        res.json({ success: true, message: "Now you are following this user" })
-        
+        res.json({ success: true, message: "Now you are following this user" });
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message })
+        console.error("Error in followUser:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -156,25 +175,31 @@ export const followUser = async (req, res) => {
 
 export const unfollowUser = async (req, res) => {
     try {
-        const { userId } = req.auth()
+        const { userId } = req.auth();
         const { id } = req.body;
 
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
+        if (!user) {
+            console.error("User not found for unfollow, userId:", userId);
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
 
-        user.following = user.following.filter(user => user !== id);
-        await user.save()
+        user.following = user.following.filter((user) => user !== id);
+        await user.save();
 
+        const toUser = await User.findById(id);
+        if (!toUser) {
+            console.error("Target user not found for unfollow, targetId:", id);
+            return res.status(404).json({ success: false, message: "Target user not found" });
+        }
 
-        const toUser = await User.findById(id)
-        toUser.followers = toUser.followers.filter(user => user !== userId);
-        await toUser.save()
+        toUser.followers = toUser.followers.filter((user) => user !== userId);
+        await toUser.save();
 
-        
-        res.json({ success: true, message: "Now you are following this user" })
-        
+        res.json({ success: true, message: "You have unfollowed this user" });
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message })
+        console.error("Error in unfollowUser:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 

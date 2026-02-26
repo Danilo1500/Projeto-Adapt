@@ -14,6 +14,8 @@ const Feed = () => {
   const [loading, setLoading] = useState(true)
   const {getToken} = useAuth()
 
+  console.log(import.meta.env.VITE_BASEURL);
+
   const fetchFeeds = async () => {
     try {
       setLoading(true)

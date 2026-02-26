@@ -48,22 +48,34 @@ function App() {
 
   useEffect(()=>{
     if(user){
+      let retryTimeout = 1000; // Start with 1 second
+
       const eventSource = new EventSource(import.meta.env.VITE_BASEURL + '/api/message/' + user.id);
 
-      eventSource.onmessage = (event)=>{
-        const message = JSON.parse(event.data)
+      eventSource.onmessage = (event) => {
+        const message = JSON.parse(event.data);
 
-        if(pathnameRef.current === ('/messages/' + message.from_user_id._id)){
-          dispatch(addMessage(message))
-        }else{
-          toast.custom((t)=>(
-            <Notification t={t} message={message}/>
-          ), {position: "bottom-right"})
+        if (pathnameRef.current === ('/messages/' + message.from_user_id._id)) {
+          dispatch(addMessage(message));
+        } else {
+          toast.custom((t) => (
+            <Notification t={t} message={message} />
+          ), { position: "bottom-right" });
         }
-      }
-      return ()=>{
-        eventSource.close()
-      }
+      };
+
+      eventSource.onerror = () => {
+        console.error('SSE connection error. Retrying...');
+        eventSource.close();
+        setTimeout(() => {
+          retryTimeout = Math.min(retryTimeout * 2, 30000); // Exponential backoff, max 30 seconds
+          window.location.reload(); // Reload to reinitialize the connection
+        }, retryTimeout);
+      };
+
+      return () => {
+        eventSource.close();
+      };
     }
   },[user, dispatch])
 
