@@ -2,6 +2,7 @@ import { Button } from "./ui/button";
 import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import codBack from '../assets/ff4088e41ec68b9e4a54a2f4a5a34682c972ab5e.png'
 
 export function ModernHeroSection() {
   return (
@@ -104,7 +105,7 @@ export function ModernHeroSection() {
           >
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1755541516450-644adb257ad0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjB3b3Jrc3BhY2UlMjB0ZWNobm9sb2d5fGVufDF8fHx8MTc2MTI1MjI3M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src={codBack}
                 alt="Professional workspace"
                 className="w-full h-[600px] object-cover"
               />

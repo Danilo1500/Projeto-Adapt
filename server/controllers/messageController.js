@@ -22,11 +22,17 @@ export const sseController = (req, res) => {
     // Send an initial event to the client
     res.write('log: Connected to SSE stream\n\n');
 
+    // Send periodic heartbeat to keep the connection alive
+    const heartbeat = setInterval(() => {
+        res.write('event: heartbeat\n');
+        res.write('data: keep-alive\n\n');
+    }, 30000); // Every 30 seconds
+
     // Handle client disconnection
     req.on('close', () => {
-        // Remove the client's response object from the connections array
+        clearInterval(heartbeat); // Clear the heartbeat interval
         delete connections[userId];
-        console.log('Client disconnected');
+        console.log('Client disconnected:', userId);
     })
 }
 

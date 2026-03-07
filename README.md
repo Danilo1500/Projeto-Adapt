@@ -1,22 +1,43 @@
-# Projeto Adapt
+# 🚀 Projeto ADAPT
 
-Bem-vindo ao **Projeto Adapt**!
+Bem-vindo ao **Projeto ADAPT** — uma plataforma inteligente voltada para **recrutamento e conexão entre profissionais de Tecnologia da Informação e empresas**.
 
-Este repositório contém um projeto desenvolvido utilizando **TypeScript**, **JavaScript** e **CSS**.
+---
 
 ## 📋 Descrição
 
-Adicione aqui uma breve descrição do projeto. Explique o objetivo do Projeto Adapt, suas principais funcionalidades e para quem ele foi desenvolvido.
+O **ADAPT** é uma plataforma desenvolvida com o objetivo de facilitar o processo de **contratação de profissionais de T.I.**, conectando empresas e candidatos de forma rápida, eficiente e inteligente.
 
-## 🚀 Tecnologias
+Inspirado em plataformas consolidadas como **LinkedIn**, **GetNinjas** e **GitHub**, o sistema permite:
+- Criação de perfis profissionais
+- Publicação de vagas
+- Conexões entre usuários
+- Análise de portfólios e experiências
+- Match entre empresas e candidatos
 
-- [TypeScript](https://www.typescriptlang.org/)
-- [JavaScript](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript)
-- [CSS](https://developer.mozilla.org/pt-BR/docs/Web/CSS)
+O projeto foi desenvolvido com foco acadêmico e prático, aplicando conceitos reais de desenvolvimento web e sistemas inteligentes.
 
-## ⚙️ Como executar
+---
 
-Descreva como rodar o projeto localmente. Por exemplo:
+## 🛠️ Tecnologias Utilizadas
+
+- TypeScript  
+- JavaScript  
+- CSS  
+- HTML5  
+- MySQL 
+- Node.js
+- React.js
+- MongoDB
+- Inngest
+- Vercel
+- Imagekit
+
+---
+
+## ⚙️ Como Executar o Projeto
+
+Siga os passos abaixo para rodar o projeto localmente:
 
 ```bash
 # Clone este repositório
@@ -28,20 +49,5 @@ cd Projeto-Adapt
 # Instale as dependências
 npm install
 
-# Rode a aplicação
+# Execute o projeto
 npm start
-```
-
-Adapte os comandos conforme a estrutura real do seu projeto.
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e enviar pull requests.
-
-## 📄 Licença
-
-Este projeto está sob licença. Adicione o tipo de licença aqui, se houver (exemplo: MIT).
-
----
-
-Se tiver mais informações para incluir (como prints, funcionalidades, autores etc.), me envie que adiciono ao README!
