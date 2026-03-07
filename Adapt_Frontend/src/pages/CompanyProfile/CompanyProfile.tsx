@@ -1,33 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
+import toast from "react-hot-toast";
+import { Briefcase, Building2, ExternalLink, MapPin, Users } from "lucide-react";
+import api from "../../api/axios";
 import LoadingWhite from "./components/LoadingWhite";
 import { CompanyHeader } from "./components/CompanyHeader";
-import { Code2, Layers, Award, FileText, ExternalLink, Briefcase, Users } from "lucide-react";
-import { ImageWithFallback } from "./components/figma/ImageWithFallback";
 
-interface Certification {
-  name: string;
-  issuer: string;
-  year: string;
-  url?: string;
+interface CompanyMember {
+  _id: string;
+  full_name: string;
+  username: string;
+  profile_picture?: string;
 }
 
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  image?: string;
-  technologies: string[];
-  link?: string;
-}
-
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-}
-
-interface Company {
+interface CompanyData {
+  _id: string;
+  clerkOrganizationId: string;
+  ownerId: string;
   name: string;
   industry: string;
   size: string;
@@ -38,393 +28,311 @@ interface Company {
   logo?: string;
   technologies: string[];
   frameworks: string[];
-  certifications: Certification[];
-  projects: Project[];
-  team: TeamMember[];
+  certifications: {
+    name: string;
+    issuer: string;
+    year: string;
+    url?: string;
+  }[];
+  members: CompanyMember[];
 }
 
-// Mock data - pode ser substituído por uma chamada real à API
-const fetchCompanyData = (): Promise<Company> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        name: "Adapt Technologies",
-        industry: "Tecnologia da Informação",
-        size: "11-50 funcionários",
-        location: "São Paulo, Brasil",
-        website: "https://adapt-ti.com",
-        description:
-          "Soluções inteligentes para recrutamento e análise de talentos em tecnologia. Transformamos a forma como empresas identificam e contratam os melhores profissionais.",
-        cover:
-          "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=60",
-        logo: "https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png",
-        technologies: ["JavaScript", "TypeScript", "Python", "Java", "Go"],
-        frameworks: ["React", "Node.js", "Flutter", "Express", "Nest.js"],
-        certifications: [
-          {
-            name: "GDPR Compliance",
-            issuer: "União Europeia",
-            year: "2023",
-            url: "https://example.com/gdpr",
-          },
-          {
-            name: "ISO 27001",
-            issuer: "ABNT",
-            year: "2022",
-            url: "https://example.com/iso27001",
-          },
-          {
-            name: "AWS Partner",
-            issuer: "Amazon Web Services",
-            year: "2024",
-          },
-        ],
-        projects: [
-          {
-            id: "1",
-            title: "Sistema de Recrutamento IA",
-            description: "Plataforma completa de recrutamento com análise de candidatos usando inteligência artificial",
-            image: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=800&q=60",
-            technologies: ["React", "Python", "TensorFlow"],
-            link: "https://example.com/project1"
-          },
-          {
-            id: "2",
-            title: "Portal de Talentos",
-            description: "Marketplace que conecta empresas e profissionais de tecnologia",
-            image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=60",
-            technologies: ["React", "Node.js", "MongoDB"],
-            link: "https://example.com/project2"
-          },
-          {
-            id: "3",
-            title: "Analytics Dashboard",
-            description: "Dashboard de métricas e insights para gestão de equipes de tecnologia",
-            image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=60",
-            technologies: ["React", "D3.js", "PostgreSQL"],
-          },
-        ],
-        team: [
-          {
-            id: "1",
-            name: "Ana Silva",
-            role: "CEO & Founder",
-            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=60"
-          },
-          {
-            id: "2",
-            name: "Carlos Santos",
-            role: "CTO",
-            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=60"
-          },
-          {
-            id: "3",
-            name: "Maria Oliveira",
-            role: "Head of Product",
-            avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=60"
-          },
-          {
-            id: "4",
-            name: "João Costa",
-            role: "Lead Developer",
-            avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=60"
-          },
-        ],
-      });
-    }, 800);
-  });
-};
+interface CompanySummary {
+  _id: string;
+  name: string;
+  industry: string;
+  location: string;
+  logo?: string;
+}
 
 const CompanyProfile: React.FC = () => {
-  const [company, setCompany] = useState<Company | null>(null);
+  const { companyId } = useParams();
+  const { getToken, userId } = useAuth();
+  const [company, setCompany] = useState<CompanyData | null>(null);
+  const [isMember, setIsMember] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("about");
+  const [joining, setJoining] = useState(false);
+  const [discoverCompanies, setDiscoverCompanies] = useState<CompanySummary[]>([]);
+
+  const isOwnProfileRoute = !companyId;
+
+  const loadOtherCompanies = async () => {
+    try {
+      const token = await getToken();
+      const { data } = await api.get("/api/company/list", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        setDiscoverCompanies(data.companies || []);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const loadCompany = async () => {
+    try {
+      setIsLoading(true);
+      const token = await getToken();
+      const endpoint = isOwnProfileRoute ? "/api/company/my" : `/api/company/${companyId}`;
+      const { data } = await api.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!data.success) {
+        setCompany(null);
+        setIsMember(false);
+        setIsOwner(false);
+        if (isOwnProfileRoute) {
+          await loadOtherCompanies();
+        }
+        return;
+      }
+
+      setCompany(data.company);
+      setIsOwner(Boolean(data.isOwner ?? data.company.ownerId === userId));
+      setIsMember(Boolean(data.isMember ?? (data.company.members || []).some((m: CompanyMember) => m._id === userId)));
+    } catch (error: any) {
+      toast.error(error.message);
+      setCompany(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadCompanyData = async () => {
-      try {
-        const data = await fetchCompanyData();
-        setCompany(data);
-      } catch (error) {
-        console.error("Erro ao carregar dados da empresa:", error);
-      } finally {
-        setIsLoading(false);
+    loadCompany();
+  }, [companyId, userId]);
+
+  const handleJoinCompany = async () => {
+    if (!company?._id) return;
+    try {
+      setJoining(true);
+      const token = await getToken();
+      const { data } = await api.post(
+        `/api/company/${company._id}/join`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!data.success) {
+        toast.error(data.message || "Nao foi possivel participar da empresa.");
+        return;
       }
-    };
+      toast.success("Agora voce participa desta empresa.");
+      await loadCompany();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setJoining(false);
+    }
+  };
 
-    loadCompanyData();
-  }, []);
+  const uniqueTechnologies = useMemo(() => company?.technologies || [], [company?.technologies]);
+  const uniqueFrameworks = useMemo(() => company?.frameworks || [], [company?.frameworks]);
 
-  if (isLoading || !company) {
+  if (isLoading) {
     return <LoadingWhite />;
   }
 
+  if (!company) {
+    return (
+      <div className="h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-6">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
+            <h1 className="text-2xl font-semibold text-slate-900">Sua empresa ainda nao foi cadastrada</h1>
+            <p className="mt-2 text-slate-600">
+              Para acessar o perfil da sua empresa, crie uma organizacao primeiro.
+            </p>
+            <Link
+              to="/empresa"
+              className="mt-5 inline-flex rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+            >
+              Criar minha empresa
+            </Link>
+          </section>
+
+          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
+            <h2 className="text-xl font-semibold text-slate-900">Empresas da comunidade</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Voce pode acessar e participar de empresas criadas por outros usuarios.
+            </p>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {discoverCompanies.length === 0 && (
+                <div className="text-sm text-slate-500">Nenhuma empresa cadastrada ate o momento.</div>
+              )}
+              {discoverCompanies.map((item) => (
+                <Link
+                  key={item._id}
+                  to={`/company/${item._id}`}
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-indigo-300"
+                >
+                  {item.logo ? (
+                    <img src={item.logo} alt={item.name} className="h-11 w-11 rounded-lg object-cover" />
+                  ) : (
+                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                      <Building2 size={18} />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">{item.name}</p>
+                    <p className="truncate text-xs text-slate-500">
+                      {item.industry || "Sem setor"} {item.location ? `• ${item.location}` : ""}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative h-full overflow-y-scroll bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-6 no-scrollbar">
-      <div className="max-w-4xl mx-auto">
-        {/* Profile Card */}
-        <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100">
+    <div className="relative h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-6 no-scrollbar">
+      <div className="mx-auto max-w-4xl">
+        <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg">
           <CompanyHeader
             name={company.name}
-            industry={company.industry}
-            size={company.size}
-            location={company.location}
+            industry={company.industry || "Setor nao informado"}
+            size={company.size || "Tamanho nao informado"}
+            location={company.location || "Localizacao nao informada"}
             website={company.website}
             cover={company.cover}
             logo={company.logo}
           />
 
-          {/* Skills & Technologies Section */}
-          <div className="px-6 pb-6 pt-4 space-y-6">
-            {/* Linguagens */}
-            <div className="group">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <Code2 className="w-4 h-4 text-indigo-600" />
-                </div>
-                <h3 className="text-gray-900">Linguagens</h3>
-              </div>
-              {company.technologies && company.technologies.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {company.technologies.map((tech) => (
-                    <span
-                      key={tech}
-                      className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border border-indigo-200 hover:shadow-md transition-all duration-200 hover:scale-105"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400 italic">Nenhuma linguagem informada</p>
-              )}
-            </div>
-
-            {/* Frameworks */}
-            <div className="group">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Layers className="w-4 h-4 text-purple-600" />
-                </div>
-                <h3 className="text-gray-900">Frameworks / Bibliotecas</h3>
-              </div>
-              {company.frameworks && company.frameworks.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {company.frameworks.map((fw) => (
-                    <span
-                      key={fw}
-                      className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border border-purple-200 hover:shadow-md transition-all duration-200 hover:scale-105"
-                    >
-                      {fw}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400 italic">Nenhum framework adicionado</p>
-              )}
-            </div>
-
-            {/* Certificados */}
-            <div className="group">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <Award className="w-4 h-4 text-amber-600" />
-                </div>
-                <h3 className="text-gray-900">Certificações</h3>
-              </div>
-
-              {company.certifications && company.certifications.length > 0 ? (
-                <div className="grid gap-3">
-                  {company.certifications.map((cert, i) => (
-                    <div
-                      key={i}
-                      className="group/cert flex items-center justify-between p-4 border-2 border-gray-100 rounded-2xl bg-gradient-to-br from-white to-gray-50 hover:border-indigo-200 hover:shadow-lg transition-all duration-200"
-                    >
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="p-2 bg-amber-50 rounded-lg flex-shrink-0 mt-0.5">
-                          <FileText className="w-4 h-4 text-amber-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-gray-900 truncate pr-2">
-                            {cert.name}
-                          </div>
-                          <div className="text-gray-500 mt-1">
-                            {cert.issuer} {cert.year && `• ${cert.year}`}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex-shrink-0 ml-3">
-                        {cert.url ? (
-                          <a
-                            href={cert.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-1.5 px-4 py-2 border-2 border-indigo-200 rounded-xl text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200 group-hover/cert:shadow-md"
-                          >
-                            <span className="text-sm">Ver</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        ) : (
-                          <span className="text-xs text-gray-400 px-3 py-1.5 bg-gray-100 rounded-lg">
-                            Certificado
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400 italic">Nenhuma certificação adicionada</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="mt-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md p-1.5 flex max-w-md mx-auto border border-gray-100">
-            {["about", "projects", "team"].map((tab) => (
+          {!isOwner && !isMember && (
+            <div className="px-6 pb-2 md:px-10">
               <button
-                onClick={() => setActiveTab(tab)}
-                key={tab}
-                className={`flex-1 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-pointer ${
-                  activeTab === tab
-                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                onClick={handleJoinCompany}
+                disabled={joining}
+                className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
+                  joining ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"
                 }`}
               >
-                {tab === "about" && "Sobre"}
-                {tab === "projects" && "Projetos"}
-                {tab === "team" && "Equipe"}
+                {joining ? "Entrando..." : "Participar da empresa"}
               </button>
-            ))}
-          </div>
+            </div>
+          )}
 
-          {/* About Tab */}
-          {activeTab === "about" && (
-            <div className="mt-6">
-              <div className="bg-white rounded-2xl shadow-md p-6 md:p-8 border border-gray-100">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <Briefcase className="w-5 h-5 text-indigo-600" />
+          {isOwner && (
+            <div className="px-6 pb-2 text-sm text-emerald-700 md:px-10">
+              Voce e o dono desta empresa.
+            </div>
+          )}
+
+          {isMember && !isOwner && (
+            <div className="px-6 pb-2 text-sm text-indigo-700 md:px-10">
+              Voce ja participa desta empresa.
+            </div>
+          )}
+
+          <div className="space-y-6 px-6 pb-8 pt-4 md:px-10">
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-indigo-600" />
+                <h3 className="text-slate-900">Sobre a empresa</h3>
+              </div>
+              <p className="text-sm leading-6 text-slate-700">
+                {company.description || "Descricao nao informada."}
+              </p>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-slate-900">Tecnologias</h3>
+              <div className="flex flex-wrap gap-2">
+                {uniqueTechnologies.length === 0 && (
+                  <span className="text-sm text-slate-500">Nenhuma tecnologia informada.</span>
+                )}
+                {uniqueTechnologies.map((tech) => (
+                  <span
+                    key={tech}
+                    className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm text-indigo-700"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-slate-900">Frameworks</h3>
+              <div className="flex flex-wrap gap-2">
+                {uniqueFrameworks.length === 0 && (
+                  <span className="text-sm text-slate-500">Nenhum framework informado.</span>
+                )}
+                {uniqueFrameworks.map((framework) => (
+                  <span
+                    key={framework}
+                    className="rounded-xl border border-purple-200 bg-purple-50 px-3 py-1.5 text-sm text-purple-700"
+                  >
+                    {framework}
+                  </span>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-slate-900">Membros</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(company.members || []).length === 0 && (
+                  <span className="text-sm text-slate-500">Nenhum membro encontrado.</span>
+                )}
+                {company.members.map((member) => (
+                  <div key={member._id} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+                    {member.profile_picture ? (
+                      <img
+                        src={member.profile_picture}
+                        alt={member.full_name}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200">
+                        <Users className="h-5 w-5 text-slate-500" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-slate-900">{member.full_name}</p>
+                      <p className="truncate text-xs text-slate-500">@{member.username}</p>
+                    </div>
                   </div>
-                  <h2 className="text-gray-900">Sobre a Empresa</h2>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-slate-900">Informacoes</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
+                  <div className="mb-1 flex items-center gap-1.5 text-slate-500">
+                    <MapPin size={14} />
+                    Localizacao
+                  </div>
+                  {company.location || "Nao informado"}
                 </div>
-                <p className="text-gray-700 leading-relaxed">
-                  {company.description}
-                </p>
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <h3 className="text-gray-900 mb-4">Nossa Missão</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Democratizar o acesso a talentos de tecnologia de alta qualidade,
-                    conectando empresas inovadoras com profissionais excepcionais através
-                    de tecnologia de ponta e processos humanizados.
-                  </p>
+                <div className="rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
+                  <div className="mb-1 flex items-center gap-1.5 text-slate-500">
+                    <Users size={14} />
+                    Tamanho
+                  </div>
+                  {company.size || "Nao informado"}
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Projects Tab */}
-          {activeTab === "projects" && (
-            <div className="mt-6">
-              {company.projects && company.projects.length > 0 ? (
-                <div className="grid gap-6">
-                  {company.projects.map((project) => (
-                    <div
-                      key={project.id}
-                      className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
-                    >
-                      {project.image && (
-                        <div className="relative h-48 md:h-64 overflow-hidden">
-                          <ImageWithFallback
-                            src={project.image}
-                            alt={project.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                        </div>
-                      )}
-                      <div className="p-6">
-                        <h3 className="text-gray-900 mb-2">
-                          {project.title}
-                        </h3>
-                        <p className="text-gray-600 mb-4">{project.description}</p>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {project.technologies.map((tech) => (
-                            <span
-                              key={tech}
-                              className="px-3 py-1 text-sm rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                        </div>
-                        {project.link && (
-                          <a
-                            href={project.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors"
-                          >
-                            <span>Ver projeto</span>
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl shadow-md p-12 text-center border border-gray-100">
-                  <div className="text-gray-400 mb-2">Nenhum projeto ainda</div>
-                  <p className="text-gray-500">
-                    Projetos da empresa aparecerão aqui
-                  </p>
-                </div>
+              {company.website && (
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700"
+                >
+                  Acessar website <ExternalLink size={14} />
+                </a>
               )}
-            </div>
-          )}
-
-          {/* Team Tab */}
-          {activeTab === "team" && (
-            <div className="mt-6">
-              {company.team && company.team.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {company.team.map((member) => (
-                    <div
-                      key={member.id}
-                      className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 text-center"
-                    >
-                      <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-indigo-100">
-                        {member.avatar ? (
-                          <ImageWithFallback
-                            src={member.avatar}
-                            alt={member.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
-                            <Users className="w-10 h-10 text-white" />
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="text-gray-900 mb-1">{member.name}</h3>
-                      <p className="text-gray-500">{member.role}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl shadow-md p-12 text-center border border-gray-100">
-                  <div className="text-gray-400 mb-2">Nenhum membro ainda</div>
-                  <p className="text-gray-500">
-                    Membros da equipe aparecerão aqui
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+            </section>
+          </div>
         </div>
       </div>
     </div>

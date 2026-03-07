@@ -4,6 +4,7 @@ import Connection from "../models/Connection.js";
 import sendEmail from "../configs/nodeMailer.js";
 import Story from "../models/Story.js";
 import Message from "../models/Message.js";
+import Company from "../models/Company.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "Adapt-app" });
@@ -172,6 +173,81 @@ const sendNotificationOfUnseenMessages = inngest.createFunction(
     }
 )
 
+const upsertCompany = inngest.createFunction(
+    { id: "upsert-company-profile" },
+    { event: "app/company.upsert" },
+    async ({ event }) => {
+        const {
+            ownerId,
+            clerkOrganizationId,
+            name,
+            slug = "",
+            industry = "",
+            size = "",
+            location = "",
+            website = "",
+            description = "",
+            cover = "",
+            logo = "",
+            technologies = [],
+            frameworks = [],
+            certifications = [],
+        } = event.data;
+
+        if (!ownerId || !clerkOrganizationId || !name) {
+            return { message: "Invalid payload for company upsert." };
+        }
+
+        const normalizedTechnologies = Array.isArray(technologies) ? technologies : [];
+        const normalizedFrameworks = Array.isArray(frameworks) ? frameworks : [];
+        const normalizedCertifications = Array.isArray(certifications) ? certifications : [];
+
+        const existingCompany = await Company.findOne({ clerkOrganizationId });
+
+        if (!existingCompany) {
+            await Company.create({
+                ownerId,
+                clerkOrganizationId,
+                name,
+                slug,
+                industry,
+                size,
+                location,
+                website,
+                description,
+                cover,
+                logo,
+                technologies: normalizedTechnologies,
+                frameworks: normalizedFrameworks,
+                certifications: normalizedCertifications,
+                members: [ownerId],
+            });
+            return { message: "Company created." };
+        }
+
+        existingCompany.ownerId = existingCompany.ownerId || ownerId;
+        existingCompany.name = name || existingCompany.name;
+        existingCompany.slug = slug || existingCompany.slug;
+        existingCompany.industry = industry;
+        existingCompany.size = size;
+        existingCompany.location = location;
+        existingCompany.website = website;
+        existingCompany.description = description;
+        existingCompany.cover = cover;
+        existingCompany.logo = logo;
+        existingCompany.technologies = normalizedTechnologies;
+        existingCompany.frameworks = normalizedFrameworks;
+        existingCompany.certifications = normalizedCertifications;
+
+        if (!existingCompany.members.includes(ownerId)) {
+            existingCompany.members.push(ownerId);
+        }
+
+        await existingCompany.save();
+        return { message: "Company updated." };
+    }
+)
+
 // Create an empty array where we'll export future Inngest functions
 export const functions = [
     syncUserCreation,
@@ -179,5 +255,6 @@ export const functions = [
     syncUserDeletion,
     sendNewConnectionRequestReminder,
     deleteStory,
-    sendNotificationOfUnseenMessages
+    sendNotificationOfUnseenMessages,
+    upsertCompany
 ];
