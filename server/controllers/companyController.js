@@ -1,5 +1,7 @@
 import { inngest } from "../inngest/index.js";
 import Company from "../models/Company.js";
+import imagekit from "../configs/imageKit.js";
+import fs from "fs";
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -102,6 +104,94 @@ export const getMyCompany = async (req, res) => {
     }
 
     res.json({ success: true, company });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export const updateMyCompany = async (req, res) => {
+  try {
+    const { userId } = req.auth();
+    const {
+      name = "",
+      slug = "",
+      industry = "",
+      size = "",
+      location = "",
+      website = "",
+      description = "",
+      technologies = "",
+      frameworks = "",
+    } = req.body;
+
+    const company = await Company.findOne({ ownerId: userId });
+    if (!company) {
+      return res.json({ success: false, message: "Empresa nao encontrada." });
+    }
+
+    const parseTags = (value) => {
+      if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+      return String(value || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    };
+
+    const updatedData = {
+      name: name.trim() || company.name,
+      slug: slug.trim() || company.slug,
+      industry: industry.trim(),
+      size: size.trim(),
+      location: location.trim(),
+      website: website.trim(),
+      description: description.trim(),
+      technologies: parseTags(technologies),
+      frameworks: parseTags(frameworks),
+    };
+
+    const logoFile = req.files?.logo?.[0];
+    const coverFile = req.files?.cover?.[0];
+
+    if (logoFile) {
+      try {
+        const buffer = fs.readFileSync(logoFile.path);
+        const response = await imagekit.upload({
+          file: buffer,
+          fileName: logoFile.originalname,
+        });
+
+        updatedData.logo = imagekit.url({
+          path: response.filePath,
+          transformation: [{ quality: "auto" }, { format: "webp" }, { width: "512" }],
+        });
+      } catch (error) {
+        console.error("Error uploading company logo:", error);
+      }
+    }
+
+    if (coverFile) {
+      try {
+        const buffer = fs.readFileSync(coverFile.path);
+        const response = await imagekit.upload({
+          file: buffer,
+          fileName: coverFile.originalname,
+        });
+
+        updatedData.cover = imagekit.url({
+          path: response.filePath,
+          transformation: [{ quality: "auto" }, { format: "webp" }, { width: "1280" }],
+        });
+      } catch (error) {
+        console.error("Error uploading company cover:", error);
+      }
+    }
+
+    const updatedCompany = await Company.findByIdAndUpdate(company._id, updatedData, {
+      new: true,
+    }).populate("members", "_id full_name username profile_picture");
+
+    res.json({ success: true, company: updatedCompany, message: "Empresa atualizada com sucesso." });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

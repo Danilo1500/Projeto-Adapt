@@ -6,11 +6,22 @@ import {
   joinCompany,
   listCompanies,
   syncCompanyFromOrganization,
+  updateMyCompany,
 } from "../controllers/companyController.js";
+import { upload } from "../configs/multer.js";
 
 const companyRouter = express.Router();
 
 companyRouter.post("/sync", protect, syncCompanyFromOrganization);
+companyRouter.post(
+  "/update",
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "cover", maxCount: 1 },
+  ]),
+  protect,
+  updateMyCompany
+);
 companyRouter.get("/my", protect, getMyCompany);
 companyRouter.get("/list", protect, listCompanies);
 companyRouter.post("/:companyId/join", protect, joinCompany);
