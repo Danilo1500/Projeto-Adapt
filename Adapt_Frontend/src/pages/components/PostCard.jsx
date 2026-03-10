@@ -1,4 +1,4 @@
-import { BadgeCheck, Heart, MessageCircle, Share2 } from "lucide-react";
+import { BadgeCheck, Heart, MessageCircle, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { dummyUserData } from "../assets/assets";
@@ -8,11 +8,12 @@ import { useAuth } from "@clerk/clerk-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, showDelete = false, onDeleted }) => {
 
   const postWithHashtags = post.content.replace(/(#\w+)/g, '<span class="text-indigo-600 cursor-pointer">$1</span>')
   const [likes, setLikes] = useState(post.likes_count)
   const currentUser = useSelector((state)=> state.user.value)
+  const isOwner = currentUser?._id === post.user._id
 
   const {getToken} = useAuth()
 
@@ -37,26 +38,58 @@ const PostCard = ({ post }) => {
     }
   }
 
+  const handleDelete = async () => {
+    if (!isOwner) return
+    const confirmed = window.confirm("Tem certeza que deseja apagar este post?")
+    if (!confirmed) return
+    try {
+      const { data } = await api.post(`/api/post/delete`, { postId: post._id }, { headers: { Authorization: `Bearer ${await getToken()}` } })
+      if (data.success) {
+        toast.success(data.message)
+        if (typeof onDeleted === "function") {
+          onDeleted(post._id)
+        }
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
   const navigate = useNavigate()
 
   return (
     <div className="bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl">
       {/* User info */}
-      <div onClick={() => navigate('/profile/' + post.user._id)} className="inline-flex items-center gap-3 cursor-pointer">
-        <img
-          src={post.user.profile_picture}
-          alt=""
-          className="w-10 h-10 rounded-full shadow"
-        />
-        <div>
-          <div className="flex items-center space-x-1">
-            <span>{post.user.full_name}</span>
-            <BadgeCheck className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="text-gray-500 text-sm">
-            @{post.user.username} • {moment(post.createdAt).fromNow()}
+      <div className="flex items-start justify-between gap-3">
+        <div onClick={() => navigate('/profile/' + post.user._id)} className="inline-flex items-center gap-3 cursor-pointer">
+          <img
+            src={post.user.profile_picture}
+            alt=""
+            className="w-10 h-10 rounded-full shadow"
+          />
+          <div>
+            <div className="flex items-center space-x-1">
+              <span>{post.user.full_name}</span>
+              <BadgeCheck className="w-4 h-4 text-blue-500" />
+            </div>
+            <div className="text-gray-500 text-sm">
+              @{post.user.username} • {moment(post.createdAt).fromNow()}
+            </div>
           </div>
         </div>
+        {showDelete && isOwner && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600"
+            title="Apagar post"
+          >
+            <Trash2 className="w-4 h-4" />
+            Apagar
+          </button>
+        )}
       </div>
 
       {/* content */}
@@ -92,3 +125,4 @@ const PostCard = ({ post }) => {
 };
 
 export default PostCard;
+

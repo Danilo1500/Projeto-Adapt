@@ -21,6 +21,10 @@ const Profile = () => {
   const [posts, setPosts] = useState([])
   const [activeTab, setActiveTab] = useState('posts')
   const [showEdit, setShowEdit] = useState(false)
+  const isOwnerProfile = currentUser?._id === user?._id
+  const handlePostDeleted = (postId) => {
+    setPosts(prev => prev.filter(post => post._id !== postId))
+  }
 
   const fetchUser = async (profileId) => {
     const token = await getToken()
@@ -72,7 +76,14 @@ const Profile = () => {
           {/* Posts */}
           {activeTab === 'posts' && (
             <div className='mt-6 flex flex-col items-center gap-6'>
-              {posts.map((post)=> <PostCard key={post._id} post={post}/>)}
+              {posts.map((post)=> (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  showDelete={isOwnerProfile}
+                  onDeleted={handlePostDeleted}
+                />
+              ))}
             </div>
           )}
 
