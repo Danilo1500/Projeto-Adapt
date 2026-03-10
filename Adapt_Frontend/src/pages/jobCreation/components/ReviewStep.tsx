@@ -1,4 +1,4 @@
-import { Button } from './ui/button';
+﻿import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
 import { Separator } from './ui/separator';
@@ -17,7 +17,7 @@ export function ReviewStep({ formData, onPublish }: ReviewStepProps) {
 
   return (
     <div>
-      <h2 className="text-gray-900 mb-2">Revisão e Publicação</h2>
+      <h2 className="text-gray-900 mb-2">Revisão e publicação</h2>
       <p className="text-gray-600 mb-6">Revise todas as informações antes de publicar a vaga</p>
 
       <Card className="p-6 mb-6">
@@ -79,7 +79,7 @@ export function ReviewStep({ formData, onPublish }: ReviewStepProps) {
               .filter((req) => req.trim())
               .map((req, index) => (
                 <li key={index} className="flex items-start gap-2 text-gray-700">
-                  <CheckCircle2 className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
                   <span>{req}</span>
                 </li>
               ))}
@@ -103,19 +103,20 @@ export function ReviewStep({ formData, onPublish }: ReviewStepProps) {
         </div>
       </Card>
 
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-        <p className="text-purple-900 text-sm">
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+        <p className="text-indigo-900 text-sm">
           <strong>Atenção:</strong> Ao publicar, esta vaga ficará visível para todos os candidatos
           da plataforma. Certifique-se de que todas as informações estão corretas.
         </p>
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={onPublish} className="text-white bg-purple-600 hover:bg-purple-700">
+        <Button onClick={onPublish} className="text-white bg-indigo-600 hover:bg-indigo-700">
           <CheckCircle2 className="w-4 h-4 mr-2" />
-          Publicar Vaga
+          Publicar vaga
         </Button>
       </div>
     </div>
   );
 }
+

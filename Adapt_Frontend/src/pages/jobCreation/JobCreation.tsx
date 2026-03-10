@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Briefcase, ArrowLeft, Save } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Progress } from './components/ui/progress';
@@ -6,6 +6,9 @@ import { BasicInfoStep } from './components/BasicInfoStep';
 import { DetailsStep } from './components/DetailsStep';
 import { ReviewStep } from './components/ReviewStep';
 import { JobsListView } from './components/JobsListView';
+import { useAuth } from '@clerk/clerk-react';
+import api from '../../api/axios';
+import toast from 'react-hot-toast';
 
 export interface JobData {
   id?: string;
@@ -25,28 +28,12 @@ export interface JobData {
   createdAt?: Date;
 }
 
-export default function App() {
+export default function JobCreation() {
   const [currentStep, setCurrentStep] = useState(1);
   const [view, setView] = useState<'list' | 'create'>('list');
-  const [jobs, setJobs] = useState<JobData[]>([
-    {
-      id: '1',
-      title: 'Técnico de Suporte N2',
-      company: 'TechSolutions',
-      location: 'São Paulo - SP',
-      contractType: 'CLT',
-      experienceLevel: 'Pleno (2-5 anos)',
-      salaryMin: '3500',
-      salaryMax: '5500',
-      currency: 'R$',
-      isRemote: true,
-      isUrgent: false,
-      description: 'Buscamos técnico de suporte nível 2 para atendimento avançado de chamados técnicos.',
-      requirements: ['Windows Server', 'Active Directory', 'Troubleshooting avançado'],
-      benefits: ['Vale transporte', 'Vale refeição', 'Plano de saúde', 'Home office'],
-      createdAt: new Date('2025-10-05'),
-    },
-  ]);
+  const [jobs, setJobs] = useState<JobData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { getToken } = useAuth();
 
   const [formData, setFormData] = useState<JobData>({
     title: '',
@@ -65,10 +52,38 @@ export default function App() {
   });
 
   const steps = [
-    { number: 1, title: 'Informações Básicas' },
-    { number: 2, title: 'Detalhes da Vaga' },
-    { number: 3, title: 'Revisão e Publicação' },
+    { number: 1, title: 'Informações básicas' },
+    { number: 2, title: 'Detalhes da vaga' },
+    { number: 3, title: 'Revisão e publicação' },
   ];
+
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    try {
+      const token = await getToken();
+      const { data } = await api.get('/api/job/mine', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        const mapped = (data.jobs || []).map((job: any) => ({
+          ...job,
+          id: job._id,
+          createdAt: job.createdAt ? new Date(job.createdAt) : undefined,
+        }));
+        setJobs(mapped);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
 
   const handleNext = () => {
     if (currentStep < 3) {
@@ -86,16 +101,36 @@ export default function App() {
     }
   };
 
-  const handlePublish = () => {
-    const newJob: JobData = {
+  const handlePublish = async () => {
+    const payload = {
       ...formData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
+      requirements: formData.requirements.filter((req) => req.trim()),
+      benefits: formData.benefits.filter((benefit) => benefit.trim()),
     };
-    setJobs([newJob, ...jobs]);
-    setView('list');
-    setCurrentStep(1);
-    resetForm();
+
+    try {
+      const token = await getToken();
+      const { data } = await api.post('/api/job/create', payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        toast.success(data.message);
+        const newJob: JobData = {
+          ...formData,
+          id: `temp-${Date.now()}`,
+          createdAt: new Date(),
+        };
+        setJobs((prev) => [newJob, ...prev]);
+        setView('list');
+        setCurrentStep(1);
+        resetForm();
+        fetchJobs();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   const resetForm = () => {
@@ -116,14 +151,35 @@ export default function App() {
     });
   };
 
-  const handleDeleteJob = (id: string) => {
-    setJobs(jobs.filter(job => job.id !== id));
+  const handleDeleteJob = async (id: string) => {
+    if (id.startsWith('temp-')) {
+      setJobs((prev) => prev.filter((job) => job.id !== id));
+      return;
+    }
+
+    try {
+      const token = await getToken();
+      const { data } = await api.post(
+        '/api/job/delete',
+        { jobId: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        setJobs((prev) => prev.filter((job) => job.id !== id));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   if (view === 'list') {
     return (
-      <JobsListView 
-        jobs={jobs} 
+      <JobsListView
+        jobs={jobs}
+        isLoading={isLoading}
         onCreateNew={() => setView('create')}
         onDeleteJob={handleDeleteJob}
       />
@@ -133,53 +189,51 @@ export default function App() {
   const progressPercentage = (currentStep / 3) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-700 to-indigo-600 rounded-bl-[50px]">
-        <div className="container mx-auto px-8 py-6">
-          <div className="flex items-center justify-between">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="bg-white rounded-full w-14 h-14 flex items-center justify-center">
-                <Briefcase className="w-7 h-7 text-purple-600" />
+              <div className="bg-indigo-50 rounded-full w-12 h-12 flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h1 className="text-white">Criar Nova Vaga</h1>
-                <p className="text-purple-100 text-sm">Encontre os melhores talentos para sua empresa</p>
+                <h1 className="text-gray-900">Criar nova vaga</h1>
+                <p className="text-gray-500 text-sm">Encontre os melhores talentos para sua empresa</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Button 
-                variant="ghost" 
-                className="text-white hover:bg-white/10"
+              <Button
+                variant="ghost"
+                className="text-gray-600 hover:bg-gray-100"
                 onClick={handleBack}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Voltar
               </Button>
-              <Button 
-                variant="outline" 
-                className="bg-transparent border-white text-white hover:bg-white hover:text-purple-600"
+              <Button
+                variant="outline"
+                className="border-gray-200 text-gray-700 hover:bg-gray-50"
               >
                 <Save className="w-4 h-4 mr-2" />
-                Salvar Rascunho
+                Salvar rascunho
               </Button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Progress Steps */}
-      <div className="container mx-auto px-8 py-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+        {/* Progress Steps */}
+        <div className="bg-white rounded-2xl shadow p-6 mt-6">
           <div className="flex items-center justify-between mb-4">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center flex-1">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
                       currentStep >= step.number
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-300 text-gray-600'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-200 text-gray-600'
                     }`}
                   >
                     {step.number}
@@ -187,7 +241,7 @@ export default function App() {
                   <span
                     className={`${
                       currentStep >= step.number
-                        ? 'text-purple-600'
+                        ? 'text-indigo-600'
                         : 'text-gray-500'
                     }`}
                   >
@@ -196,9 +250,9 @@ export default function App() {
                 </div>
                 {index < steps.length - 1 && (
                   <div className="flex-1 mx-4">
-                    <div className="h-0.5 bg-gray-300 relative">
+                    <div className="h-0.5 bg-gray-200 relative">
                       <div
-                        className="h-full bg-purple-600 transition-all duration-300"
+                        className="h-full bg-indigo-600 transition-all duration-300"
                         style={{
                           width: currentStep > step.number ? '100%' : '0%',
                         }}
@@ -213,7 +267,7 @@ export default function App() {
         </div>
 
         {/* Form Content */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow p-6 mt-6">
           {currentStep === 1 && (
             <BasicInfoStep formData={formData} setFormData={setFormData} onNext={handleNext} />
           )}

@@ -5,6 +5,7 @@ import sendEmail from "../configs/nodeMailer.js";
 import Story from "../models/Story.js";
 import Message from "../models/Message.js";
 import Company from "../models/Company.js";
+import Job from "../models/Job.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "Adapt-app" });
@@ -248,6 +249,26 @@ const upsertCompany = inngest.createFunction(
     }
 )
 
+// Inngest Function to create job
+const createJob = inngest.createFunction(
+    { id: "job-create" },
+    { event: "app/job.create" },
+    async ({ event, step }) => {
+        const { userId, job } = event.data || {};
+        if (!userId || !job) {
+            return { message: "Invalid payload for job creation." };
+        }
+
+        return await step.run("create-job", async () => {
+            const created = await Job.create({
+                user: userId,
+                ...job,
+            });
+            return { message: "Job created.", jobId: created._id };
+        });
+    }
+)
+
 // Create an empty array where we'll export future Inngest functions
 export const functions = [
     syncUserCreation,
@@ -256,5 +277,6 @@ export const functions = [
     sendNewConnectionRequestReminder,
     deleteStory,
     sendNotificationOfUnseenMessages,
-    upsertCompany
+    upsertCompany,
+    createJob
 ];

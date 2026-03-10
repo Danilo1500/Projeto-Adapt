@@ -1,4 +1,4 @@
-import { Button } from './ui/button';
+﻿import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -20,11 +20,11 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="text-gray-900 mb-6">Informações Básicas da Vaga</h2>
+      <h2 className="text-gray-900 mb-6">Informações básicas da vaga</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <Label htmlFor="title">Título da Vaga *</Label>
+          <Label htmlFor="title">Título da vaga *</Label>
           <Input
             id="title"
             placeholder="Ex: Técnico de Redes Pleno"
@@ -62,7 +62,7 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
         </div>
 
         <div>
-          <Label htmlFor="contractType">Tipo de Contrato *</Label>
+          <Label htmlFor="contractType">Tipo de contrato *</Label>
           <Select
             value={formData.contractType}
             onValueChange={(value) => setFormData({ ...formData, contractType: value })}
@@ -71,8 +71,8 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              <SelectItem value="Tempo Integral">Tempo Integral</SelectItem>
-              <SelectItem value="Meio Período">Meio Período</SelectItem>
+              <SelectItem value="Tempo Integral">Tempo integral</SelectItem>
+              <SelectItem value="Meio Período">Meio período</SelectItem>
               <SelectItem value="Freelance">Freelance</SelectItem>
               <SelectItem value="Estágio">Estágio</SelectItem>
               <SelectItem value="Temporário">Temporário</SelectItem>
@@ -83,7 +83,7 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <Label htmlFor="experienceLevel">Nível de Experiência *</Label>
+          <Label htmlFor="experienceLevel">Nível de experiência *</Label>
           <Select
             value={formData.experienceLevel}
             onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}
@@ -91,7 +91,7 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
             <SelectTrigger id="experienceLevel" className="mt-2">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className='bg-white'>
+            <SelectContent className="bg-white">
               <SelectItem value="Júnior (0-2 anos)">Júnior (0-2 anos)</SelectItem>
               <SelectItem value="Pleno (2-5 anos)">Pleno (2-5 anos)</SelectItem>
               <SelectItem value="Sênior (5+ anos)">Sênior (5+ anos)</SelectItem>
@@ -109,7 +109,7 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
               <SelectTrigger className="w-20">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 <SelectItem value="R$">R$</SelectItem>
                 <SelectItem value="US$">US$</SelectItem>
                 <SelectItem value="€">€</SelectItem>
@@ -142,7 +142,7 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
             }
           />
           <Label htmlFor="remote" className="cursor-pointer">
-            Trabalho Remoto
+            Trabalho remoto
           </Label>
         </div>
 
@@ -155,13 +155,13 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
             }
           />
           <Label htmlFor="urgent" className="cursor-pointer">
-            Vaga Urgente
+            Vaga urgente
           </Label>
         </div>
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700">
+        <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700">
           Próximo
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -169,3 +169,4 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
     </form>
   );
 }
+

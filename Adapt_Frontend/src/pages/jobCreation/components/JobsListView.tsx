@@ -1,4 +1,4 @@
-import { Button } from './ui/button';
+﻿import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Briefcase, Plus, MapPin, Building2, Clock, DollarSign, Trash2 } from 'lucide-react';
@@ -19,9 +19,10 @@ interface JobsListViewProps {
   jobs: JobData[];
   onCreateNew: () => void;
   onDeleteJob: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export function JobsListView({ jobs, onCreateNew, onDeleteJob }: JobsListViewProps) {
+export function JobsListView({ jobs, onCreateNew, onDeleteJob, isLoading = false }: JobsListViewProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -31,25 +32,25 @@ export function JobsListView({ jobs, onCreateNew, onDeleteJob }: JobsListViewPro
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-700 to-indigo-600 rounded-bl-[50px]">
-        <div className="container mx-auto px-8 py-8">
-          <div className="flex items-center justify-between">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center">
-                <Briefcase className="w-8 h-8 text-purple-600" />
+              <div className="bg-indigo-50 rounded-full w-12 h-12 flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h1 className="text-white">Portal de Vagas TI</h1>
-                <p className="text-purple-100">
-                  Gerencie vagas de emprego para técnicos em TI
+                <h1 className="text-gray-900">Vagas da empresa</h1>
+                <p className="text-gray-500 text-sm">
+                  Gerencie vagas de emprego para profissionais de tecnologia
                 </p>
               </div>
             </div>
             <Button
               onClick={onCreateNew}
-              className="bg-white text-purple-600 hover:bg-purple-50"
+              className="bg-indigo-600 text-white hover:bg-indigo-700"
               size="lg"
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -60,15 +61,20 @@ export function JobsListView({ jobs, onCreateNew, onDeleteJob }: JobsListViewPro
       </div>
 
       {/* Jobs List */}
-      <div className="container mx-auto px-8 py-12">
-        {jobs.length === 0 ? (
-          <Card className="p-12 text-center">
+      <div className="max-w-5xl mx-auto py-8">
+        {isLoading ? (
+          <Card className="p-10 text-center">
+            <Briefcase className="w-14 h-14 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600">Carregando vagas...</p>
+          </Card>
+        ) : jobs.length === 0 ? (
+          <Card className="p-10 text-center">
             <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-gray-900 mb-2">Nenhuma vaga publicada</h3>
             <p className="text-gray-600 mb-6">
               Comece criando sua primeira vaga de emprego
             </p>
-            <Button onClick={onCreateNew} className="bg-purple-600 hover:bg-purple-700">
+            <Button onClick={onCreateNew} className="bg-indigo-600 hover:bg-indigo-700">
               <Plus className="w-4 h-4 mr-2" />
               Criar Primeira Vaga
             </Button>
@@ -169,3 +175,4 @@ export function JobsListView({ jobs, onCreateNew, onDeleteJob }: JobsListViewPro
     </div>
   );
 }
+

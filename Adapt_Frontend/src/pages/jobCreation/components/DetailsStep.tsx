@@ -1,4 +1,4 @@
-import { Button } from './ui/button';
+﻿import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
@@ -49,10 +49,10 @@ export function DetailsStep({ formData, setFormData, onNext }: DetailsStepProps)
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="text-gray-900 mb-6">Detalhes da Vaga</h2>
+      <h2 className="text-gray-900 mb-6">Detalhes da vaga</h2>
 
       <div className="mb-6">
-        <Label htmlFor="description">Descrição da Vaga *</Label>
+        <Label htmlFor="description">Descrição da vaga *</Label>
         <Textarea
           id="description"
           placeholder="Descreva as principais responsabilidades e o que o candidato irá fazer no dia a dia..."
@@ -71,10 +71,10 @@ export function DetailsStep({ formData, setFormData, onNext }: DetailsStepProps)
             variant="outline"
             size="sm"
             onClick={addRequirement}
-            className="text-purple-600 border-purple-600 hover:bg-purple-50"
+            className="text-indigo-600 border-indigo-600 hover:bg-indigo-50"
           >
             <Plus className="w-4 h-4 mr-1" />
-            Adicionar Requisito
+            Adicionar requisito
           </Button>
         </div>
         <div className="space-y-3">
@@ -110,10 +110,10 @@ export function DetailsStep({ formData, setFormData, onNext }: DetailsStepProps)
             variant="outline"
             size="sm"
             onClick={addBenefit}
-            className="text-purple-600 border-purple-600 hover:bg-purple-50"
+            className="text-indigo-600 border-indigo-600 hover:bg-indigo-50"
           >
             <Plus className="w-4 h-4 mr-1" />
-            Adicionar Benefício
+            Adicionar benefício
           </Button>
         </div>
         <div className="space-y-3">
@@ -142,7 +142,7 @@ export function DetailsStep({ formData, setFormData, onNext }: DetailsStepProps)
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" className="text-white bg-purple-600 hover:bg-purple-700">
+        <Button type="submit" className="text-white bg-indigo-600 hover:bg-indigo-700">
           Próximo
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -150,3 +150,4 @@ export function DetailsStep({ formData, setFormData, onNext }: DetailsStepProps)
     </form>
   );
 }
+
