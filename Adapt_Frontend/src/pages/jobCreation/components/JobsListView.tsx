@@ -18,11 +18,12 @@ import {
 interface JobsListViewProps {
   jobs: JobData[];
   onCreateNew: () => void;
+  onEditJob: (job: JobData) => void;
   onDeleteJob: (id: string) => void;
   isLoading?: boolean;
 }
 
-export function JobsListView({ jobs, onCreateNew, onDeleteJob, isLoading = false }: JobsListViewProps) {
+export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoading = false }: JobsListViewProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -93,6 +94,11 @@ export function JobsListView({ jobs, onCreateNew, onDeleteJob, isLoading = false
                     <div className="flex-1">
                       <div className="flex items-start gap-3 mb-3">
                         <h3 className="text-gray-900">{job.title}</h3>
+                        {job.status === 'draft' && (
+                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                            Rascunho
+                          </Badge>
+                        )}
                         {job.isUrgent && (
                           <Badge variant="secondary" className="bg-red-100 text-red-700">
                             Urgente
@@ -136,35 +142,46 @@ export function JobsListView({ jobs, onCreateNew, onDeleteJob, isLoading = false
                       </div>
                     </div>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      {job.status === 'draft' && (
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          variant="outline"
+                          className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                          onClick={() => onEditJob(job)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          Continuar
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Excluir vaga?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta ação não pode ser desfeita. A vaga "{job.title}" será
-                            permanentemente removida.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDeleteJob(job.id!)}
-                            className="bg-red-600 hover:bg-red-700"
+                      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
-                            Excluir
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir vaga?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. A vaga "{job.title}" será
+                              permanentemente removida.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => onDeleteJob(job.id!)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 </Card>
               );

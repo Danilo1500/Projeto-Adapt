@@ -4,7 +4,6 @@ import UserCard from "../components/UserCard";
 import CompanyCard from "../components/CompanyCard";
 import Loading from "../components/LoadingWhite";
 import JobCard from "../jobCreation/components/JobCard";
-import { dummyJobs } from "../jobCreation/data/dummyJobs";
 import api from "../../api/axios";
 import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
@@ -13,7 +12,7 @@ const Discover = () => {
   const [input, setInput] = useState("");
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [jobs, setJobs] = useState(dummyJobs);
+  const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const { getToken } = useAuth();
 
@@ -41,12 +40,27 @@ const Discover = () => {
     setCompanies(data.companies || []);
   };
 
+  const fetchJobs = async (searchText = "") => {
+    const { data } = await api.get("/api/job/public", {
+      params: { q: searchText },
+    });
+    if (!data.success) throw new Error(data.message);
+    const mapped = (data.jobs || []).map((job) => ({
+      ...job,
+      id: job._id,
+      createdAt: job.createdAt ? new Date(job.createdAt) : undefined,
+    }));
+    setJobs(mapped);
+  };
+
   const handleSearch = async (event) => {
     if (event.key !== "Enter") return;
     try {
       setLoading(true);
       if (activeTab === "pessoas") {
         await fetchUsers(input);
+      } else if (activeTab === "vagas") {
+        await fetchJobs(input);
       } else if (activeTab === "empresas") {
         await fetchCompanies(input);
       }
@@ -82,6 +96,8 @@ const Discover = () => {
         setLoading(true);
         if (activeTab === "pessoas") {
           await fetchUsers("");
+        } else if (activeTab === "vagas") {
+          await fetchJobs("");
         } else if (activeTab === "empresas") {
           await fetchCompanies("");
         }
@@ -152,7 +168,6 @@ const Discover = () => {
                       key={job.id}
                       job={job}
                       onApply={() => {}}
-                      onDelete={(id) => setJobs((prev) => prev.filter((item) => item.id !== id))}
                     />
                   ))
                 ) : (

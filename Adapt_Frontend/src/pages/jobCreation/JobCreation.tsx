@@ -25,6 +25,7 @@ export interface JobData {
   description: string;
   requirements: string[];
   benefits: string[];
+  status?: 'draft' | 'published';
   createdAt?: Date;
 }
 
@@ -33,6 +34,7 @@ export default function JobCreation() {
   const [view, setView] = useState<'list' | 'create'>('list');
   const [jobs, setJobs] = useState<JobData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const { getToken } = useAuth();
 
   const [formData, setFormData] = useState<JobData>({
@@ -98,7 +100,38 @@ export default function JobCreation() {
       setView('list');
       setCurrentStep(1);
       resetForm();
+      setEditingJobId(null);
     }
+  };
+
+  const startNewJob = () => {
+    resetForm();
+    setEditingJobId(null);
+    setCurrentStep(1);
+    setView('create');
+  };
+
+  const startEditJob = (job: JobData) => {
+    setFormData({
+      title: job.title || '',
+      company: job.company || '',
+      location: job.location || '',
+      contractType: job.contractType || 'Tempo Integral',
+      experienceLevel: job.experienceLevel || 'Júnior (0-2 anos)',
+      salaryMin: job.salaryMin || '',
+      salaryMax: job.salaryMax || '',
+      currency: job.currency || 'R$',
+      isRemote: !!job.isRemote,
+      isUrgent: !!job.isUrgent,
+      description: job.description || '',
+      requirements: job.requirements?.length ? job.requirements : [''],
+      benefits: job.benefits?.length ? job.benefits : [''],
+      status: job.status,
+      id: job.id,
+    });
+    setEditingJobId(job.id || null);
+    setCurrentStep(1);
+    setView('create');
   };
 
   const handlePublish = async () => {
@@ -106,24 +139,61 @@ export default function JobCreation() {
       ...formData,
       requirements: formData.requirements.filter((req) => req.trim()),
       benefits: formData.benefits.filter((benefit) => benefit.trim()),
+      status: 'published',
     };
 
     try {
       const token = await getToken();
-      const { data } = await api.post('/api/job/create', payload, {
+      const endpoint = editingJobId ? '/api/job/update' : '/api/job/create';
+      const body = editingJobId ? { ...payload, jobId: editingJobId } : payload;
+      const { data } = await api.post(endpoint, body, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (data.success) {
         toast.success(data.message);
-        const newJob: JobData = {
-          ...formData,
-          id: `temp-${Date.now()}`,
-          createdAt: new Date(),
-        };
-        setJobs((prev) => [newJob, ...prev]);
+        if (!editingJobId) {
+          const newJob: JobData = {
+            ...formData,
+            id: `temp-${Date.now()}`,
+            createdAt: new Date(),
+            status: 'published',
+          };
+          setJobs((prev) => [newJob, ...prev]);
+        }
         setView('list');
         setCurrentStep(1);
         resetForm();
+        setEditingJobId(null);
+        fetchJobs();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    const payload = {
+      ...formData,
+      requirements: formData.requirements.filter((req) => req.trim()),
+      benefits: formData.benefits.filter((benefit) => benefit.trim()),
+      status: 'draft',
+    };
+
+    try {
+      const token = await getToken();
+      const endpoint = editingJobId ? '/api/job/update' : '/api/job/draft';
+      const body = editingJobId ? { ...payload, jobId: editingJobId } : payload;
+      const { data } = await api.post(endpoint, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        toast.success(data.message);
+        setView('list');
+        setCurrentStep(1);
+        resetForm();
+        setEditingJobId(null);
         fetchJobs();
       } else {
         toast.error(data.message);
@@ -180,7 +250,8 @@ export default function JobCreation() {
       <JobsListView
         jobs={jobs}
         isLoading={isLoading}
-        onCreateNew={() => setView('create')}
+        onCreateNew={startNewJob}
+        onEditJob={startEditJob}
         onDeleteJob={handleDeleteJob}
       />
     );
@@ -215,6 +286,7 @@ export default function JobCreation() {
               <Button
                 variant="outline"
                 className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                onClick={handleSaveDraft}
               >
                 <Save className="w-4 h-4 mr-2" />
                 Salvar rascunho
