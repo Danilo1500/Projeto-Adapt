@@ -65,7 +65,6 @@ function App() {
       };
 
       eventSource.onerror = () => {
-        console.error('SSE connection error. Retrying...');
         eventSource.close();
         setTimeout(() => {
           retryTimeout = Math.min(retryTimeout * 2, 30000); // Exponential backoff, max 30 seconds
@@ -105,3 +104,4 @@ function App() {
 }
 
 export default App;
+

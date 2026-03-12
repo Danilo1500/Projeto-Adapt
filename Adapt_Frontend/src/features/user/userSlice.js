@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import api from '../../api/axios.js'
+import toast from 'react-hot-toast'
 
 
 const initialState = {
@@ -21,7 +22,7 @@ export const updateUser = createAsyncThunk('user/update', async ({userData, toke
         toast.success(data.message)
         return data.user
     }else{
-        toast.console.error(data.message)
+        toast.error(data.message)
         return null
     }
 })

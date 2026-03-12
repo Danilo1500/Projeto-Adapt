@@ -88,7 +88,6 @@ const CreateCompanyCard = () => {
       toast.success("Empresa criada e salva com sucesso.");
       navigate("/company");
     } catch (error) {
-      console.error(error);
       toast.error(error?.errors?.[0]?.message || error.message || "Erro ao criar empresa.");
     } finally {
       setLoading(false);
@@ -99,7 +98,7 @@ const CreateCompanyCard = () => {
     <section className="w-full rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
       <h2 className="text-2xl font-semibold text-slate-900">Cadastro da empresa</h2>
       <p className="mt-2 text-sm text-slate-600">
-        A organização é criada no Clerk e sincronizada no banco via Inngest.
+        A organizaÃ§Ã£o Ã© criada no Clerk e sincronizada no banco via Inngest.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -214,3 +213,4 @@ const CreateCompanyCard = () => {
 };
 
 export default CreateCompanyCard;
+

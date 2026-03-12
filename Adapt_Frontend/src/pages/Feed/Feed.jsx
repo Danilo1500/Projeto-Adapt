@@ -16,26 +16,18 @@ const Feed = () => {
   const { getToken, isLoaded } = useAuth()
 
   useEffect(() => {
-    console.log('useEffect executed');
-    console.log('isLoaded:', isLoaded);
     if (isLoaded) {
-      console.log('isLoaded is true, calling fetchFeeds');
       fetchFeeds();
-    } else {
-      console.log('isLoaded is false, not calling fetchFeeds');
     }
   }, [isLoaded])
 
   const fetchFeeds = async () => {
     try {
-      console.log('fetchFeeds called');
       setLoading(true);
       const token = await getToken()
-      console.log('Token:', token)
 
       if (!token) {
-        console.log('No token found')
-        toast.error('Usuário não autenticado')
+        toast.error('Usuario nao autenticado')
         return
       }
 
@@ -48,22 +40,17 @@ const Feed = () => {
         }
       )
 
-      console.log('API Response:', data)
 
       if (data.success) {
-        console.log('Data fetched successfully:', data.posts)
         setFeeds(data.posts)
       } else {
-        console.log('API returned an error:', data.message)
         toast.error(data.message)
       }
 
     } catch (error) {
-      console.error('API Error:', error)
       toast.error(error?.response?.data?.message || error.message)
     } finally {
       setLoading(false)
-      console.log('Loading state set to false')
     }
   }
 

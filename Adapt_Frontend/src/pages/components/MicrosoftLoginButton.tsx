@@ -5,7 +5,6 @@ function MicrosoftLoginButton() {
 
   const handleLogin = () => {
     instance.loginPopup().then(response => {
-      console.log("Microsoft login:", response);
       // salvar dados ou redirecionar
     });
   };
@@ -22,3 +21,4 @@ function MicrosoftLoginButton() {
 }
 
 export default MicrosoftLoginButton;
+
