@@ -76,16 +76,16 @@ const ChatBox = () => {
   },[messages])
 
   return user && (
-    <div className='flex flex-col h-screen'>
-      <div className='flex items-center gap-2 p-2 md:px-10 xl:pl-20 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-300'>
+    <div className='flex flex-col min-h-[100dvh] w-full overflow-hidden'>
+      <div className='flex items-center gap-2 p-3 sm:px-6 md:px-10 xl:pl-20 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-300'>
         <img src={user.profile_picture} alt="" className='size-8 rounded-full'/>
         <div>
           <p className='font-medium'>{user.full_name}</p>
           <p className='text-sm text-gray-500 -mt-1.5'>@{user.username}</p>
         </div>
       </div>
-      <div className='p-5 md:px-10 h-full overflow-y-scroll'>
-        <div className='space-y-4 max-w-4xl mx-auto'>
+      <div className='flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 md:px-10'>
+        <div className='space-y-4 w-full max-w-4xl mx-auto'>
           {
             messages.toSorted((a, b)=> new Date(a.createdAt) - new Date(b.createdAt)).map((message, index)=>(
               <div key={index} className={`flex flex-col ${message.to_user_id !== user._id ? 'items-start' : 'items-end'}`}>
@@ -102,9 +102,12 @@ const ChatBox = () => {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className='px-4'>
-        <div className='flex items-center gap-3 pl-5 p-1.5 bg-white w-full max-w-xl mx-auto border border-gray-200 shadow rounded-full mb-5'>
-          <input type="text" className='flex-1 outline-none text-slate-700' placeholder='Type a message...'
+      <div className='px-4 pb-4'>
+        <div className='flex items-center gap-3 px-4 py-1.5 bg-white w-full max-w-xl mx-auto border border-gray-200 shadow rounded-full'>
+          <input
+            type="text"
+            className='flex-1 outline-none text-slate-700 text-base bg-transparent'
+            placeholder='Type a message...'
           onKeyDown={e=>e.key === 'Enter' && sendMessage()} onChange={(e)=>setText(e.target.value)} value={text} />
 
           <label htmlFor="image">

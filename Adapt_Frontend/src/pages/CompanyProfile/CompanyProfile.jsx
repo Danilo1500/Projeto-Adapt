@@ -98,7 +98,7 @@ const CompanyProfile = () => {
   const team = company.members.length > 0 ? company.members : [];
 
   return (
-    <div className="relative h-full overflow-y-scroll bg-gray-50 p-6 no-scrollbar">
+    <div className="relative min-h-[100dvh] overflow-y-auto overflow-x-hidden bg-gray-50 p-4 sm:p-6 no-scrollbar">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow overflow-hidden">
           <div className="h-40 md:h-56 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200">
@@ -122,12 +122,12 @@ const CompanyProfile = () => {
         </div>
 
         <div className="mt-6">
-          <div className="bg-white rounded-xl shadow p-1 flex max-w-xl mx-auto">
+          <div className="bg-white rounded-xl shadow p-2 flex flex-wrap gap-2 max-w-xl mx-auto">
             {["posts", "media", "services", "team", "portfolio"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-4 py-2 text-xs md:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                className={`flex-1 min-w-[90px] px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                   activeTab === tab ? "bg-indigo-600 text-white" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
@@ -147,13 +147,13 @@ const CompanyProfile = () => {
           )}
 
           {activeTab === "media" && (
-            <div className="flex flex-wrap mt-6 max-w-6xl">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {posts
                 .filter((post) => Array.isArray(post.image_urls) && post.image_urls.length > 0)
                 .map((post) =>
                   post.image_urls.map((image, index) => (
                     <Link to={image} target="_blank" key={index} className="relative group">
-                      <img src={image} className="w-64 aspect-video object-cover" alt="" />
+                      <img src={image} className="w-full aspect-video object-cover rounded-lg" alt="" />
                       <p className="absolute bottom-0 right-0 text-xs p-1 px-3 backdrop-blur-xl text-white opacity-0 group-hover:opacity-100 transition duration-300">
                         Postado {moment(post.createdAt).fromNow()}
                       </p>
@@ -164,7 +164,7 @@ const CompanyProfile = () => {
           )}
 
           {activeTab === "services" && (
-            <div className="mt-6 grid md:grid-cols-3 gap-6">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {technologies.map((tech, index) => (
                 <div key={`${tech}-${index}`} className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
                   <div className="text-3xl">#</div>
@@ -176,7 +176,7 @@ const CompanyProfile = () => {
           )}
 
           {activeTab === "team" && (
-            <div className="mt-6 grid md:grid-cols-3 gap-6">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {team.length > 0 ? (
                 team.map((member, index) => (
                   <div
@@ -199,7 +199,7 @@ const CompanyProfile = () => {
           )}
 
           {activeTab === "portfolio" && (
-            <div className="mt-6 grid md:grid-cols-3 gap-6">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {company.frameworks.length > 0 ? (
                 company.frameworks.map((framework, index) => (
                   <div key={`${framework}-${index}`} className="bg-white rounded-xl shadow hover:shadow-lg transition">
