@@ -6,6 +6,8 @@ import Story from "../models/Story.js";
 import Message from "../models/Message.js";
 import Company from "../models/Company.js";
 import Job from "../models/Job.js";
+import Comment from "../models/Comment.js";
+import Post from "../models/Post.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "Adapt-app" });
@@ -174,6 +176,89 @@ const sendNotificationOfUnseenMessages = inngest.createFunction(
     }
 )
 
+const sendNotificationOfNewMessage = inngest.createFunction(
+    { id: "send-new-message-notification" },
+    { event: "app/message.created" },
+    async ({ event }) => {
+        const { messageId } = event.data || {};
+        if (!messageId) {
+            return { message: "Invalid payload for message notification." };
+        }
+
+        const message = await Message.findById(messageId).populate("from_user_id to_user_id");
+        if (!message || !message.to_user_id) {
+            return { message: "Message not found." };
+        }
+
+        const subject = `Nova mensagem de ${message.from_user_id?.full_name || "um usuario"}`;
+        const body = `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Olá ${message.to_user_id.full_name},</h2>
+            <p>Você recebeu uma nova mensagem de ${message.from_user_id?.full_name || "um usuário"}.</p>
+            <p>Abra <a href="${process.env.FRONTEND_URL}/messages" style="color: #10b981;">aqui</a> para ver.</p>
+            <br/>
+            <p>Obrigado, <br/>Adapt - Stay Connected</p>
+        </div>`;
+
+        await sendEmail({
+            to: message.to_user_id.email,
+            subject,
+            body
+        });
+
+        return { message: "Message notification sent." };
+    }
+)
+
+const sendNotificationOfNewComment = inngest.createFunction(
+    { id: "send-new-comment-notification" },
+    { event: "app/comment.created" },
+    async ({ event }) => {
+        const { commentId } = event.data || {};
+        if (!commentId) {
+            return { message: "Invalid payload for comment notification." };
+        }
+
+        const comment = await Comment.findById(commentId).populate("user");
+        if (!comment) {
+            return { message: "Comment not found." };
+        }
+
+        const post = await Post.findById(comment.post);
+        if (!post) {
+            return { message: "Post not found." };
+        }
+
+        const commenterId = comment.user?._id || comment.user;
+        if (commenterId === post.user) {
+            return { message: "Skipping self-comment notification." };
+        }
+
+        const postOwner = await User.findById(post.user);
+        if (!postOwner) {
+            return { message: "Post owner not found." };
+        }
+
+        const subject = `Novo comentario no seu post`;
+        const body = `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Olá ${postOwner.full_name},</h2>
+            <p>${comment.user?.full_name || "Alguém"} comentou no seu post.</p>
+            <p><strong>Comentário:</strong> ${comment.content}</p>
+            <p>Veja no <a href="${process.env.FRONTEND_URL}/" style="color: #10b981;">feed</a>.</p>
+            <br/>
+            <p>Obrigado, <br/>Adapt - Stay Connected</p>
+        </div>`;
+
+        await sendEmail({
+            to: postOwner.email,
+            subject,
+            body
+        });
+
+        return { message: "Comment notification sent." };
+    }
+)
 const upsertCompany = inngest.createFunction(
     { id: "upsert-company-profile" },
     { event: "app/company.upsert" },
@@ -277,6 +362,8 @@ export const functions = [
     sendNewConnectionRequestReminder,
     deleteStory,
     sendNotificationOfUnseenMessages,
+    sendNotificationOfNewMessage,
+    sendNotificationOfNewComment,
     upsertCompany,
     createJob
 ];

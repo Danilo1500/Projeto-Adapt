@@ -1,6 +1,7 @@
 import fs from "fs";
 import imagekit from "../configs/imageKit.js";
 import Message from "../models/Message.js";
+import { inngest } from "../inngest/index.js";
 
 // Create an empty object to store SS Event connections
 const connections = {};
@@ -69,6 +70,15 @@ export const sendMessage = async (req, res) => {
             message_type,
             media_url: image_url
         })
+
+        try {
+            await inngest.send({
+                name: "app/message.created",
+                data: { messageId: message._id.toString() },
+            });
+        } catch (err) {
+            console.warn("Failed to send Inngest message event", err);
+        }
 
         res.json({ success: true, message });
 

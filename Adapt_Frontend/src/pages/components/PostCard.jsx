@@ -1,7 +1,6 @@
 import { BadgeCheck, Heart, MessageCircle, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
-import { dummyUserData } from "../assets/assets";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/react";
@@ -12,6 +11,11 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
 
   const postWithHashtags = post.content.replace(/(#\w+)/g, '<span class="text-indigo-600 cursor-pointer">$1</span>')
   const [likes, setLikes] = useState(post.likes_count)
+  const [showComments, setShowComments] = useState(false)
+  const [comments, setComments] = useState([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentText, setCommentText] = useState("")
+  const [commentsCount, setCommentsCount] = useState(post.comments_count ?? 0)
   const currentUser = useSelector((state)=> state.user.value)
   const isOwner = currentUser?._id === post.user._id
 
@@ -58,6 +62,54 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
   }
 
   const navigate = useNavigate()
+
+  const fetchComments = async () => {
+    try {
+      setCommentsLoading(true)
+      const { data } = await api.get(`/api/comment/post/${post._id}`, {
+        headers: { Authorization: `Bearer ${await getToken()}` }
+      })
+      if (data.success) {
+        setComments(data.comments)
+        setCommentsCount(data.comments.length)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    } finally {
+      setCommentsLoading(false)
+    }
+  }
+
+  const handleToggleComments = async () => {
+    const next = !showComments
+    setShowComments(next)
+    if (next && comments.length === 0) {
+      await fetchComments()
+    }
+  }
+
+  const handleAddComment = async (e) => {
+    e.preventDefault()
+    if (!commentText.trim()) return
+    try {
+      const { data } = await api.post(
+        `/api/comment/add`,
+        { postId: post._id, content: commentText.trim() },
+        { headers: { Authorization: `Bearer ${await getToken()}` } }
+      )
+      if (data.success) {
+        setComments(prev => [data.comment, ...prev])
+        setCommentText("")
+        setCommentsCount(prev => prev + 1)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
 
   return (
     <div className="bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl">
@@ -109,16 +161,71 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
             <Heart className={`w-4 h-4 cursor-pointer ${likes.includes(currentUser._id) && 'text-red-500 fill-red-500'}`} onClick={handleLike}/>
             <span>{likes.length}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <button type="button" className="flex items-center gap-1" onClick={handleToggleComments}>
             <MessageCircle className="w-4 h-4"/>
-            <span>{12}</span>
-          </div>
+            <span>{commentsCount}</span>
+          </button>
           <div className="flex items-center gap-1">
             <Share2 className="w-4 h-4"/>
             <span>{7}</span>
           </div>
 
         </div>
+
+        {showComments && (
+          <div className="pt-2 border-t border-gray-200 space-y-3">
+            <form onSubmit={handleAddComment} className="flex items-start gap-2">
+              <img
+                src={currentUser?.profile_picture}
+                alt=""
+                className="w-8 h-8 rounded-full"
+              />
+              <div className="flex-1">
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  rows={2}
+                  placeholder="Escreva um comentário..."
+                />
+                <div className="flex justify-end mt-1">
+                  <button
+                    type="submit"
+                    className="text-xs px-3 py-1 rounded-full bg-indigo-600 text-white hover:bg-indigo-700"
+                  >
+                    Comentar
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            {commentsLoading ? (
+              <p className="text-xs text-gray-500">Carregando comentários...</p>
+            ) : comments.length === 0 ? (
+              <p className="text-xs text-gray-500">Seja o primeiro a comentar.</p>
+            ) : (
+              <div className="space-y-3">
+                {comments.map((comment) => (
+                  <div key={comment._id} className="flex items-start gap-2">
+                    <img
+                      src={comment.user?.profile_picture}
+                      alt=""
+                      className="w-7 h-7 rounded-full"
+                    />
+                    <div className="bg-gray-50 rounded-lg px-3 py-2 flex-1">
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium text-gray-800">{comment.user?.full_name}</span>
+                        <span className="ml-1">@{comment.user?.username}</span>
+                        <span className="ml-2 text-gray-400">{moment(comment.createdAt).fromNow()}</span>
+                      </div>
+                      <p className="text-sm text-gray-800 mt-1 whitespace-pre-wrap">{comment.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         
     </div>
   );
