@@ -246,9 +246,21 @@ export const getUserConnections = async (req, res) => {
         const { userId } = req.auth()
         const user = await User.findById(userId).populate('connections followers following')
 
-        const connections = user.connections
-        const followers = user.followers
-        const following = user.following
+        const uniqById = (items) => {
+            const map = new Map()
+            items.forEach((item) => {
+                if (!item) return
+                const key = item._id?.toString?.() || item.toString?.() || item
+                if (!map.has(key)) {
+                    map.set(key, item)
+                }
+            })
+            return Array.from(map.values())
+        }
+
+        const connections = uniqById(user.connections)
+        const followers = uniqById(user.followers)
+        const following = uniqById(user.following)
 
         const pendingConnections = (await Connection.find({ to_user_id: userId, status: 'pending' }).populate('from_user_id')).map(connection => connection.from_user_id)
 
@@ -273,12 +285,16 @@ export const acceptConnectionRequest = async (req, res) => {
         }
 
         const user = await User.findById(userId);
-        user.connections.push(id);
-        await user.save()
+        if (!user.connections.includes(id)) {
+            user.connections.push(id);
+            await user.save()
+        }
 
         const toUser = await User.findById(id);
-        toUser.connections.push(userId);
-        await toUser.save()
+        if (!toUser.connections.includes(userId)) {
+            toUser.connections.push(userId);
+            await toUser.save()
+        }
 
         connection.status = 'accepted';
         await connection.save()
