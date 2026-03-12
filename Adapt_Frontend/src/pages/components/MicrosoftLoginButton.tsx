@@ -4,7 +4,7 @@ function MicrosoftLoginButton() {
   const { instance } = useMsal();
 
   const handleLogin = () => {
-    instance.loginPopup().then(response => {
+    instance.loginPopup().then(() => {
       // salvar dados ou redirecionar
     });
   };

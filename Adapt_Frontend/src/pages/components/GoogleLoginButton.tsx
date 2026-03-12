@@ -3,7 +3,7 @@ import { GoogleLogin } from "@react-oauth/google";
 function GoogleLoginButton() {
   return (
     <GoogleLogin
-      onSuccess={(credentialResponse) => {
+      onSuccess={() => {
         // salvar dados ou redirecionar
       }}
       width="100%"
