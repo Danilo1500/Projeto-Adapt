@@ -6,7 +6,7 @@ import {
   SignUp,
   useUser,
   useOrganizationList,
-} from "@clerk/clerk-react";
+} from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 

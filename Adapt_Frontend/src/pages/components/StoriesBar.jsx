@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react'
 import moment from 'moment'
 import StoryModal from './StoryModal'
 import StoryViwer from './StoryViwer'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
 

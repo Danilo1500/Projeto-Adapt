@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { dummyUserData } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 

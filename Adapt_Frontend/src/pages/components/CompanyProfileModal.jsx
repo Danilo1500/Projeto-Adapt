@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/react";
 import api from "../../api/axios";
 import { Pencil } from "lucide-react";
 

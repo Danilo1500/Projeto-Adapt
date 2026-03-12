@@ -1,4 +1,4 @@
-ï»¿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Briefcase, ArrowLeft, Save } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Progress } from './components/ui/progress';
@@ -6,7 +6,7 @@ import { BasicInfoStep } from './components/BasicInfoStep';
 import { DetailsStep } from './components/DetailsStep';
 import { ReviewStep } from './components/ReviewStep';
 import { JobsListView } from './components/JobsListView';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
@@ -42,7 +42,7 @@ export default function JobCreation() {
     company: '',
     location: '',
     contractType: 'Tempo Integral',
-    experienceLevel: 'JÃºnior (0-2 anos)',
+    experienceLevel: 'Júnior (0-2 anos)',
     salaryMin: '',
     salaryMax: '',
     currency: 'R$',
@@ -54,9 +54,9 @@ export default function JobCreation() {
   });
 
   const steps = [
-    { number: 1, title: 'InformaÃ§Ãµes bÃ¡sicas' },
+    { number: 1, title: 'Informações básicas' },
     { number: 2, title: 'Detalhes da vaga' },
-    { number: 3, title: 'RevisÃ£o e publicaÃ§Ã£o' },
+    { number: 3, title: 'Revisão e publicação' },
   ];
 
   const fetchJobs = async () => {
@@ -117,7 +117,7 @@ export default function JobCreation() {
       company: job.company || '',
       location: job.location || '',
       contractType: job.contractType || 'Tempo Integral',
-      experienceLevel: job.experienceLevel || 'JÃºnior (0-2 anos)',
+      experienceLevel: job.experienceLevel || 'Júnior (0-2 anos)',
       salaryMin: job.salaryMin || '',
       salaryMax: job.salaryMax || '',
       currency: job.currency || 'R$',
@@ -209,7 +209,7 @@ export default function JobCreation() {
       company: '',
       location: '',
       contractType: 'Tempo Integral',
-      experienceLevel: 'JÃºnior (0-2 anos)',
+      experienceLevel: 'Júnior (0-2 anos)',
       salaryMin: '',
       salaryMax: '',
       currency: 'R$',

@@ -8,7 +8,7 @@ import Connections from "./pages/Connection/Connections";
 import Discover from "./pages/Discover/Discover";
 import Profile from "./pages/Profile/Profile";
 import CreatePost from "./pages/CreatePost/CreatePost";
-import { useUser, useAuth } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/react";
 import Layout from "./pages/Layout/Layout";
 import toast, { Toaster } from "react-hot-toast";
 import JobCreation from "./pages/jobCreation/JobCreation";
@@ -32,10 +32,14 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (user) {
-      const token = await getToken()
-      dispatch(fetchUser(token))
-      dispatch(fetchConnections(token))
+      if (!user) return;
+      try {
+        const token = await getToken();
+        if (!token) return;
+        dispatch(fetchUser(token));
+        dispatch(fetchConnections(token));
+      } catch (error) {
+        console.warn("Clerk getToken failed", error);
       }
     }
     fetchData()

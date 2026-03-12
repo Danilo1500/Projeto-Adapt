@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth, useOrganizationList } from "@clerk/clerk-react";
+import { useAuth, useOrganizationList } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../../../api/axios";
