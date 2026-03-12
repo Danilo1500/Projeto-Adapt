@@ -18,7 +18,7 @@ const Login = () => {
   const { createOrganization, setActive } = useOrganizationList();
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row relative overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col md:flex-row relative overflow-x-hidden">
       {/* Fundo */}
       <img
         src={assets.bgImage}
@@ -156,9 +156,6 @@ const Login = () => {
           display: none !important;
         }
 
-        body {
-          overflow: hidden !important;
-        }
       `}</style>
     </div>
   );
