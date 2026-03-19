@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import moment from "moment";
-import { useAuth } from "@clerk/react";
+import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
 
 import Loading from "../components/LoadingWhite";

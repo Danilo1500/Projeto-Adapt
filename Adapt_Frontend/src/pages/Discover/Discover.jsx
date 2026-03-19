@@ -5,7 +5,7 @@ import CompanyCard from "../components/CompanyCard";
 import Loading from "../components/LoadingWhite";
 import JobCard from "../jobCreation/components/JobCard";
 import api from "../../api/axios";
-import { useAuth } from "@clerk/react";
+import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
 
 const Discover = () => {

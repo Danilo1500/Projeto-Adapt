@@ -8,7 +8,7 @@ import Connections from "./pages/Connection/Connections";
 import Discover from "./pages/Discover/Discover";
 import Profile from "./pages/Profile/Profile";
 import CreatePost from "./pages/CreatePost/CreatePost";
-import { useUser, useAuth } from "@clerk/react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import Layout from "./pages/Layout/Layout";
 import toast, { Toaster } from "react-hot-toast";
 import JobCreation from "./pages/jobCreation/JobCreation";

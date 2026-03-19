@@ -6,7 +6,7 @@ import { BasicInfoStep } from './components/BasicInfoStep';
 import { DetailsStep } from './components/DetailsStep';
 import { ReviewStep } from './components/ReviewStep';
 import { JobsListView } from './components/JobsListView';
-import { useAuth } from '@clerk/react';
+import { useAuth } from '@clerk/clerk-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 

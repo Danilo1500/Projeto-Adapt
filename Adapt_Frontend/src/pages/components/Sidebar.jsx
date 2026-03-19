@@ -3,7 +3,7 @@ import { assets, dummyUserData } from '../assets/assets'
 import { useNavigate, Link } from 'react-router-dom';
 import MenuItems from './MenuItems';
 import { CirclePlus, LogOut, Briefcase, Building2 } from 'lucide-react';
-import { UserButton, useClerk } from '@clerk/react';
+import { UserButton, useClerk } from '@clerk/clerk-react';
 import { useSelector } from 'react-redux';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {

@@ -2,7 +2,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles/index.css"; // <-- Certifique-se de que este import está presente
 import { BrowserRouter } from "react-router-dom";
-import { ClerkProvider } from '@clerk/react';
+import { ClerkProvider } from '@clerk/clerk-react';
 import { ptBR } from "@clerk/localizations";
 import { Provider } from 'react-redux';
 import { store } from './app/store.js';

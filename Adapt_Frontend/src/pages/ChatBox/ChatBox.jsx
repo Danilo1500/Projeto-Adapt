@@ -3,7 +3,7 @@ import { dummyMessagesData, dummyUserData } from '../assets/assets'
 import { ImageIcon, SendHorizonal } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
-import { useAuth } from '@clerk/react'
+import { useAuth } from '@clerk/clerk-react'
 import api from '../../api/axios'
 import { addMessage, fetchMessages, resetMessages } from '../../features/messages/messagesSlice'
 import toast from 'react-hot-toast'
@@ -91,7 +91,14 @@ const ChatBox = () => {
               <div key={index} className={`flex flex-col ${message.to_user_id !== user._id ? 'items-start' : 'items-end'}`}>
                 <div className={`p-2 text-sm max-w-sm bg-white text-slate-700 rounded-lg shadow ${message.to_user_id !== user._id ? 'rounded-bl-none' : 'rounded-br-none'}`}>
                   {
-                  message.message_type === 'image' && <img src={message.media_url} className='w-full max-w-sm rounded-lg mb-1' alt="" />
+                  message.message_type === 'image' && (
+                    <img
+                      src={message.media_url}
+                      className='w-full max-w-sm h-auto max-h-64 object-contain rounded-lg mb-1'
+                      alt=""
+                      loading="lazy"
+                    />
+                  )
                   }
                   <p>{message.text}</p>
                 </div>
@@ -113,7 +120,7 @@ const ChatBox = () => {
           <label htmlFor="image">
             {
               image 
-              ? <img src={URL.createObjectURL(image)} alt="" className='h-8 rounded' /> 
+              ? <img src={URL.createObjectURL(image)} alt="" className='h-8 w-8 object-cover rounded' /> 
               : <ImageIcon className='size-7 text-gray-400 cursor-pointer'/>
             }
             <input type="file" id='image' accept='image/*' hidden onChange={(e)=>setImage(e.target.files[0])} />
