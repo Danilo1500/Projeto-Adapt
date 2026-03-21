@@ -7,8 +7,11 @@ import StoryViwer from './StoryViwer'
 import { useAuth } from '@clerk/clerk-react'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
+import { useTheme } from '../../context/ThemeContext'
 
 const StoriesBar = () => {
+    const { theme } = useTheme()
+    const isDark = theme === 'dark'
 
     const {getToken} = useAuth()
 
@@ -63,13 +66,19 @@ const StoriesBar = () => {
             {/* Add Story card */}
             <div 
                 onClick={() => setShowModal(true)} 
-                className='rounded-lg shadow-sm  min-w-[120px] max-w-[120px] min-h-[180px] max-h-[180px] aspect-[9/16] cursor-pointer hover:shadow-lg transition-all duration-200 border-2 border-dashed border-indigo-300 bg-gradient-to-b from-indigo-50 to-white'
+                className={`rounded-lg shadow-sm  min-w-[120px] max-w-[120px] min-h-[180px] max-h-[180px] aspect-[9/16] cursor-pointer hover:shadow-lg transition-all duration-200 border-2 border-dashed ${
+                    isDark
+                        ? 'border-slate-700 bg-slate-800 hover:bg-slate-700'
+                        : 'border-indigo-300 bg-gradient-to-b from-indigo-50 to-white'
+                }`}
             >
                 <div className='h-full flex flex-col items-center justify-center p-4'>
                     <div className='size-10 bg-indigo-500 rounded-full flex items-center justify-center mb-3'>
                         <Plus className='w-5 h-5 text-white' />
                     </div>
-                    <p className='text-sm font-medium text-slate-700 text-center'>Create Story</p>
+                    <p className={`text-sm font-medium text-center ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                        Create Story
+                    </p>
                 </div>
             </div>
 
@@ -83,7 +92,9 @@ const StoriesBar = () => {
                     <img 
                         src={story.user.profile_picture} 
                         alt="" 
-                        className='absolute top-3 left-3 z-10 w-10 h-10 rounded-full ring ring-gray-100 shadow' 
+                        className={`absolute top-3 left-3 z-10 w-10 h-10 rounded-full ring shadow ${
+                            isDark ? 'ring-slate-700' : 'ring-gray-100'
+                        }`} 
                     />
                     <p className='absolute top-16 left-3 text-white/60 text-sm truncate max-w-24'>{story.content}</p>
                     <p className='text-white absolute bottom-1 right-2 z-10 text-xs'>{moment(story.createdAt).fromNow()}</p>

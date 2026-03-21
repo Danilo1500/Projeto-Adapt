@@ -3,6 +3,7 @@ import { useAuth, useOrganizationList } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../../../api/axios";
+import { useTheme } from "../../../context/ThemeContext";
 
 const initialForm = {
   name: "",
@@ -22,6 +23,8 @@ const normalizeTags = (value) =>
     .filter(Boolean);
 
 const CreateCompanyCard = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const { isLoaded, createOrganization, setActive } = useOrganizationList();
@@ -94,107 +97,115 @@ const CreateCompanyCard = () => {
     }
   };
 
+  const inputClass = `w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-indigo-500 ${
+    isDark ? "border-slate-600 bg-slate-900 text-slate-100" : "border-slate-300 bg-white text-slate-900"
+  }`;
+
+  const labelClass = `mb-1 block text-sm font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`;
+
   return (
-    <section className="w-full rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
-      <h2 className="text-2xl font-semibold text-slate-900">Cadastro da empresa</h2>
-      <p className="mt-2 text-sm text-slate-600">
+    <section
+      className={`w-full rounded-2xl border p-6 md:p-8 shadow-sm ${
+        isDark ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-white"
+      }`}
+    >
+      <h2 className={`text-2xl font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+        Cadastro da empresa
+      </h2>
+      <p className={`mt-2 text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>
         A organizaÃ§Ã£o Ã© criada no Clerk e sincronizada no banco via Inngest.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Nome da empresa *</label>
+          <label className={labelClass}>Nome da empresa *</label>
           <input
             name="name"
             value={form.name}
             onChange={handleChange}
             placeholder="Ex.: Adapt Tech"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+            className={inputClass}
             required
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Setor</label>
+            <label className={labelClass}>Setor</label>
             <input
               name="industry"
               value={form.industry}
               onChange={handleChange}
               placeholder="Tecnologia"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Tamanho</label>
+            <label className={labelClass}>Tamanho</label>
             <input
               name="size"
               value={form.size}
               onChange={handleChange}
               placeholder="11-50 colaboradores"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className={inputClass}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Localizacao</label>
+            <label className={labelClass}>Localizacao</label>
             <input
               name="location"
               value={form.location}
               onChange={handleChange}
               placeholder="Sao Paulo, BR"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Website</label>
+            <label className={labelClass}>Website</label>
             <input
               name="website"
               value={form.website}
               onChange={handleChange}
               placeholder="https://empresa.com"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className={inputClass}
             />
           </div>
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Tecnologias (separadas por virgula)
-          </label>
+          <label className={labelClass}>Tecnologias (separadas por virgula)</label>
           <input
             name="technologies"
             value={form.technologies}
             onChange={handleChange}
             placeholder="React, Node.js, MongoDB"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Frameworks (separados por virgula)
-          </label>
+          <label className={labelClass}>Frameworks (separados por virgula)</label>
           <input
             name="frameworks"
             value={form.frameworks}
             onChange={handleChange}
             placeholder="Next.js, Express, NestJS"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Descricao</label>
+          <label className={labelClass}>Descricao</label>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
             placeholder="Descreva a sua empresa."
             rows={4}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+            className={inputClass}
           />
         </div>
 
@@ -213,4 +224,3 @@ const CreateCompanyCard = () => {
 };
 
 export default CreateCompanyCard;
-

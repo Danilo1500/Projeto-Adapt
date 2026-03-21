@@ -1,14 +1,27 @@
 
 
-const Loading = () => {
+import { useTheme } from "../../context/ThemeContext";
+
+const Loading = ({ height = "100vh", size = 56 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gradient-to-b from-gray-50 to-gray-100">
+    <div
+      className={`flex items-center justify-center w-full ${
+        isDark ? "bg-slate-900" : "bg-gradient-to-b from-gray-50 to-gray-100"
+      }`}
+      style={{ minHeight: height }}
+    >
       <div className="flex flex-col items-center gap-4">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+        <div className="relative" style={{ width: size, height: size }}>
+          <div
+            className={`absolute inset-0 border-4 rounded-full ${
+              isDark ? "border-slate-700" : "border-gray-200"
+            }`}
+          ></div>
           <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
         </div>
-        <p className="text-gray-600">Carregando...</p>
+        <p className={isDark ? "text-slate-300" : "text-gray-600"}>Carregando...</p>
       </div>
     </div>
   );

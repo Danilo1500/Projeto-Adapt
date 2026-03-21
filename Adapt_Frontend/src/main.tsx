@@ -6,6 +6,7 @@ import { ClerkProvider } from '@clerk/clerk-react';
 import { ptBR } from "@clerk/localizations";
 import { Provider } from 'react-redux';
 import { store } from './app/store.js';
+import { ThemeProvider } from "./context/ThemeContext.jsx";
 
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -21,7 +22,9 @@ if (rootElement) {
       localization={ptBR}>
         <BrowserRouter>
          <Provider store={store}>
-            <App />
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
          </Provider>
         </BrowserRouter>
       </ClerkProvider>

@@ -1,4 +1,5 @@
 import { Building2, ShieldCheck, Users } from "lucide-react";
+import { useTheme } from "../../../context/ThemeContext";
 
 const items = [
   {
@@ -19,22 +20,37 @@ const items = [
 ];
 
 const CompanyCreationInfo = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   return (
-    <aside className="w-full rounded-2xl border border-indigo-100 bg-indigo-50 p-6">
-      <h2 className="text-lg font-semibold text-slate-900">Criar empresa</h2>
-      <p className="mt-2 text-sm text-slate-700">
+    <aside
+      className={`w-full rounded-2xl border p-6 ${
+        isDark ? "border-slate-700 bg-slate-800" : "border-indigo-100 bg-indigo-50"
+      }`}
+    >
+      <h2 className={`text-lg font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+        Criar empresa
+      </h2>
+      <p className={`mt-2 text-sm ${isDark ? "text-slate-300" : "text-slate-700"}`}>
         Use o formulário ao lado para registrar sua organização.
       </p>
 
       <div className="mt-6 space-y-4">
         {items.map(({ icon: Icon, title, text }) => (
           <div key={title} className="flex items-start gap-3">
-            <div className="rounded-lg bg-white p-2 text-indigo-600">
+            <div
+              className={`rounded-lg p-2 ${
+                isDark ? "bg-slate-900 text-indigo-300" : "bg-white text-indigo-600"
+              }`}
+            >
               <Icon size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-slate-900">{title}</h3>
-              <p className="text-sm text-slate-600">{text}</p>
+              <h3 className={`text-sm font-medium ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+                {title}
+              </h3>
+              <p className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>{text}</p>
             </div>
           </div>
         ))}

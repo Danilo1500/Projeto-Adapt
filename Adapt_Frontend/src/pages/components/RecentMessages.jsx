@@ -4,8 +4,11 @@ import moment from "moment";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
+import { useTheme } from "../../context/ThemeContext";
 
 const RecentMessages = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [messages, setMessages] = useState([]);
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -54,8 +57,14 @@ const RecentMessages = () => {
   }, [user]);
 
   return (
-    <div className="bg-white max-w-xs mt-4 p-4 min-h-20 rounded-md shadow text-xs text-slate-800">
-      <h3 className="font-semibold mb-4">Recent Messages</h3>
+    <div
+      className={`max-w-xs mt-4 p-4 min-h-20 rounded-md shadow text-xs ${
+        isDark ? "bg-slate-800 text-slate-100 border border-slate-700" : "bg-white text-slate-800"
+      }`}
+    >
+      <h3 className={`font-semibold mb-4 ${isDark ? "text-slate-100" : "text-slate-800"}`}>
+        Recent Messages
+      </h3>
       <div className="flex flex-col max-h-56 overflow-y-scroll no-scrollbar">
         {messages.map((message, index) => {
           const from = message.from_user_id || {};
@@ -64,22 +73,24 @@ const RecentMessages = () => {
             <Link
               to={`/messages/${senderId}`}
               key={index}
-              className="flex items-start gap-2 py-2 hover:bg-slate-100"
+              className={`flex items-start gap-2 py-2 ${
+                isDark ? "hover:bg-slate-700/60" : "hover:bg-slate-100"
+              }`}
             >
-              <img
-                src={from.profile_picture || ""}
-                alt=""
-                className="w-8 h-8 rounded-full"
-              />
+              <img src={from.profile_picture || ""} alt="" className="w-8 h-8 rounded-full" />
               <div className="w-full">
                 <div className="flex justify-between">
-                  <p className="font-medium">{from.full_name || "Usuário"}</p>
-                  <p className="text-[10px] text-slate-400">
+                  <p className={`font-medium ${isDark ? "text-slate-100" : "text-slate-800"}`}>
+                    {from.full_name || "Usuário"}
+                  </p>
+                  <p className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-400"}`}>
                     {moment(message.createdAt).fromNow()}
                   </p>
                 </div>
                 <div className="flex justify-between">
-                  <p className="text-gray-500">{message.text || "Media"}</p>
+                  <p className={isDark ? "text-slate-400" : "text-gray-500"}>
+                    {message.text || "Media"}
+                  </p>
                   {!message.seen && (
                     <p className="bg-indigo-500 text-white w-4 h-4 flex items-center justify-center rounded-full text-[10px]">
                       1

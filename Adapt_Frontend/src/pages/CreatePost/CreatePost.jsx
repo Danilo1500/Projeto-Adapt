@@ -6,10 +6,13 @@ import { useSelector } from 'react-redux'
 import { useAuth } from '@clerk/clerk-react'
 import api from '../../api/axios'
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from '../../context/ThemeContext'
 
 const CreatePost = () => {
 
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
   const [content, setContent] = useState('')
   const [images, setImages] = useState([])
   const [loading, setLoading] = useState(false)
@@ -48,27 +51,34 @@ const CreatePost = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-b from-slate-50 to-white'>
+    <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-gradient-to-b from-slate-50 to-white'}`}>
       <div className='max-w-6xl mx-auto p-6'>
         {/* Title */}
         <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-slate-900 mb-2'>Create Post</h1>
-          <p className='text-slate-600'>Share your thoughts with world</p>
+          <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Create Post</h1>
+          <p className={isDark ? 'text-slate-300' : 'text-slate-600'}>Share your thoughts with world</p>
         </div>
 
         {/* Form */}
-        <div className='max-w-xl bg-white p-4 sm:p-8 sm:pb-3 rounded-xl shadow-md space-y-4'>
+        <div className={`max-w-xl p-4 sm:p-8 sm:pb-3 rounded-xl shadow-md space-y-4 ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white'}`}>
           {/* Header */}
           <div className='flex items-center gap-3'>
             <img src={user.profile_picture} alt="" className='w-12 h-12 rounded-full shadow'/>
             <div>
-              <h2 className='font-semibold'>{user.full_name}</h2>
-              <p className='text-sm text-gray-500'>@{user.username}</p>
+              <h2 className={`font-semibold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{user.full_name}</h2>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>@{user.username}</p>
             </div>
           </div>
 
           {/* Text Area */}
-          <textarea className='w-full resize-none max-h-20 mt-4 text-sm outline-none placeholder-gray-400' placeholder="What's happening?" onChange={(e)=>setContent(e.target.value)} vlaue={content}/>
+          <textarea
+            className={`w-full resize-none max-h-20 mt-4 text-sm outline-none placeholder-gray-400 ${
+              isDark ? 'bg-slate-800 text-slate-100 placeholder:text-slate-500' : 'bg-white text-slate-900'
+            }`}
+            placeholder="What's happening?"
+            onChange={(e)=>setContent(e.target.value)}
+            vlaue={content}
+          />
 
           {/* Images */}
           {
@@ -85,8 +95,8 @@ const CreatePost = () => {
           }
 
           {/* Bottom Bar */}
-          <div className='flex items-center justify-between pt-3 border-t border-gray-300'>
-            <label htmlFor="images" className='flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer'>
+          <div className={`flex items-center justify-between pt-3 border-t ${isDark ? 'border-slate-700' : 'border-gray-300'}`}>
+            <label htmlFor="images" className={`flex items-center gap-2 text-sm transition cursor-pointer ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'}`}>
               <Image className='size-6' />
             </label>
             

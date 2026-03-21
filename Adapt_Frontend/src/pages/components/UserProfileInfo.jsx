@@ -44,7 +44,7 @@ const UserProfileInfo = ({ user, posts, profileId, setShowEdit }) => {
             </span>
             <span className='flex items-center gap-1.5'>
                 <Calendar className='w-4 h-4'/>
-                Joined <span className='font-medium'>{moment(user.createAt).fromNow()}</span>
+                Joined <span className='font-medium'>{moment(user.createdAt || user.createAt).fromNow()}</span>
             </span>
           </div>
 

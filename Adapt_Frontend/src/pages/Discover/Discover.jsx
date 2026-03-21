@@ -7,8 +7,11 @@ import JobCard from "../jobCreation/components/JobCard";
 import api from "../../api/axios";
 import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
+import { useTheme } from "../../context/ThemeContext";
 
 const Discover = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [input, setInput] = useState("");
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -111,11 +114,19 @@ const Discover = () => {
   }, [activeTab]);
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-slate-50 to-white no-scrollbar">
+    <div
+      className={`h-full overflow-y-auto no-scrollbar ${
+        isDark ? "bg-slate-900" : "bg-gradient-to-b from-slate-50 to-white"
+      }`}
+    >
       <div className="mx-auto max-w-6xl p-6 pb-6">
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-slate-900">Discover</h1>
-          <p className="text-slate-600">Explore oportunidades, pessoas e empresas incriveis</p>
+          <h1 className={`mb-2 text-3xl font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+            Discover
+          </h1>
+          <p className={isDark ? "text-slate-300" : "text-slate-600"}>
+            Explore oportunidades, pessoas e empresas incriveis
+          </p>
         </div>
 
         <div className="mb-6 flex gap-3">
@@ -126,6 +137,8 @@ const Discover = () => {
               className={`flex-1 cursor-pointer rounded-xl px-4 py-2.5 transition-all duration-200 ${
                 activeTab === tab
                   ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200"
+                  : isDark
+                  ? "text-slate-300 hover:bg-slate-800 hover:text-slate-100"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
@@ -134,10 +147,18 @@ const Discover = () => {
           ))}
         </div>
 
-        <div className="mb-8 rounded-md border border-slate-200/60 bg-white/80 shadow-md">
+        <div
+          className={`mb-8 rounded-md border shadow-md ${
+            isDark ? "border-slate-700 bg-slate-800/80" : "border-slate-200/60 bg-white/80"
+          }`}
+        >
           <div className="p-6">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-slate-400" />
+              <Search
+                className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform ${
+                  isDark ? "text-slate-400" : "text-slate-400"
+                }`}
+              />
               <input
                 type="text"
                 placeholder={`Buscar por ${
@@ -147,7 +168,11 @@ const Discover = () => {
                     ? "nome, usuario ou localizacao..."
                     : "nome da empresa, setor ou cidade..."
                 }`}
-                className="w-full rounded-md border border-gray-300 py-2 pl-10 sm:pl-12 max-sm:text-sm"
+                className={`w-full rounded-md border py-2 pl-10 sm:pl-12 max-sm:text-sm outline-none ${
+                  isDark
+                    ? "border-slate-600 bg-slate-900 text-slate-100 placeholder:text-slate-500"
+                    : "border-gray-300 bg-white text-slate-900 placeholder:text-slate-400"
+                }`}
                 onChange={(event) => setInput(event.target.value)}
                 value={input}
                 onKeyUp={handleSearch}
@@ -156,7 +181,7 @@ const Discover = () => {
           </div>
         </div>
 
-        {loading && <Loading height="60vh" />}
+        {loading && <Loading height="45vh" size={48} />}
 
         {!loading && (
           <>
@@ -171,7 +196,9 @@ const Discover = () => {
                     />
                   ))
                 ) : (
-                  <div className="text-center text-slate-500">Nenhuma vaga encontrada.</div>
+                  <div className={`text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                    Nenhuma vaga encontrada.
+                  </div>
                 )}
               </div>
             )}
@@ -191,9 +218,17 @@ const Discover = () => {
                     <CompanyCard key={company._id} company={company} onJoin={handleJoinCompany} />
                   ))
                 ) : (
-                  <div className="mx-auto max-w-md rounded-2xl border border-gray-100 bg-white p-12 text-center shadow-md">
-                    <div className="mb-2 text-gray-400">Nenhuma empresa encontrada</div>
-                    <p className="text-gray-500">Tente pesquisar novamente</p>
+                  <div
+                    className={`mx-auto max-w-md rounded-2xl border p-12 text-center shadow-md ${
+                      isDark ? "border-slate-700 bg-slate-800" : "border-gray-100 bg-white"
+                    }`}
+                  >
+                    <div className={`mb-2 ${isDark ? "text-slate-400" : "text-gray-400"}`}>
+                      Nenhuma empresa encontrada
+                    </div>
+                    <p className={isDark ? "text-slate-400" : "text-gray-500"}>
+                      Tente pesquisar novamente
+                    </p>
                   </div>
                 )}
               </div>

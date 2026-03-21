@@ -81,6 +81,15 @@ const CompanyProfile = () => {
     fetchCompany();
   }, [companyId, getToken]);
 
+  useEffect(() => {
+    document.documentElement.classList.add("hide-scrollbar");
+    document.body.classList.add("hide-scrollbar");
+    return () => {
+      document.documentElement.classList.remove("hide-scrollbar");
+      document.body.classList.remove("hide-scrollbar");
+    };
+  }, []);
+
   const canEdit = !companyId;
 
   if (loading) return <Loading />;
@@ -98,7 +107,7 @@ const CompanyProfile = () => {
   const team = company.members.length > 0 ? company.members : [];
 
   return (
-    <div className="relative min-h-[100dvh] overflow-y-auto overflow-x-hidden bg-gray-50 p-4 sm:p-6 no-scrollbar">
+    <div className="relative min-h-[100dvh] overflow-x-hidden bg-gray-50 p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow overflow-hidden">
           <div className="h-40 md:h-56 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200">
