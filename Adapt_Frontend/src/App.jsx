@@ -14,6 +14,7 @@ import toast, { Toaster } from "react-hot-toast";
 import JobCreation from "./pages/jobCreation/JobCreation";
 import Empresa from "./pages/Empresa/Empresa";
 import CompanyProfile from "./pages/CompanyProfile/CompanyProfile";
+import AdminModeration from "./pages/Admin/AdminModeration";
 import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { fetchUser } from "./features/user/userSlice";
@@ -101,6 +102,7 @@ function App() {
           <Route path="empresa" element={<Empresa />} />
           <Route path="company" element={<CompanyProfile />} />
           <Route path="company/:companyId" element={<CompanyProfile />} />
+          <Route path="admin" element={<AdminModeration />} />
         </Route>
       </Routes>
     </>
