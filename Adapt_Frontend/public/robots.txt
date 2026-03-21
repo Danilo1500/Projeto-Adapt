@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://adapt-pi.vercel.app/sitemap.xml

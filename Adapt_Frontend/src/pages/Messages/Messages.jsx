@@ -1,5 +1,4 @@
-import React from 'react'
-import { dummyConnectionsData } from '../assets/assets'
+import React, { useMemo, useState } from 'react'
 import { Eye, MessageSquare } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -8,6 +7,18 @@ const messages = () => {
 
   const { connections } = useSelector((state)=>state.connections)
   const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+
+  const filteredConnections = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return connections
+
+    return connections.filter((user) => {
+      const name = (user.full_name || '').toLowerCase()
+      const username = (user.username || '').toLowerCase()
+      return name.includes(q) || username.includes(q)
+    })
+  }, [connections, query])
 
   return (
     <div className='min-h-screen relative bg-slate-50'>
@@ -18,9 +29,19 @@ const messages = () => {
           <p className='text-slate-600'>Talk to your friends and interprises</p>
         </div>
 
+        {/* Search */}
+        <div className='mb-6 max-w-xl'>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder='Search by name or username'
+            className='w-full rounded-md border border-slate-200 bg-white px-4 py-2 text-slate-800 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300'
+          />
+        </div>
+
         {/* Connected Users */}
         <div className='flex flex-col gap-3'>
-          {connections.map((user)=>(
+          {filteredConnections.map((user)=>(
             <div key={user._id} className='max-w-xl flex gap-5 p-6 bg-white shadow rounded-md items-start'>
               <img src={user.profile_picture} alt="" className='rounded-full size-12 mx-auto'/>
               <div className='flex-1 min-w-0'>
