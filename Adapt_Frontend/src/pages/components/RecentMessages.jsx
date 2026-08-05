@@ -5,6 +5,7 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { useTheme } from "../../context/ThemeContext";
+import { requestWithAuth } from "../../utils/authRequest";
 
 const RecentMessages = () => {
   const { theme } = useTheme();
@@ -15,10 +16,10 @@ const RecentMessages = () => {
 
   const fetchRecentMessages = async () => {
     try {
-      const token = await getToken();
-      const { data } = await api.get("/api/user/recent-messages", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.get("/api/user/recent-messages", { headers })
+      );
 
       if (data.success && Array.isArray(data.messages)) {
         // Agrupa por remetente -> mantém somente a mensagem mais recente de cada remetente
@@ -44,7 +45,7 @@ const RecentMessages = () => {
         toast.error(data.message || "Erro ao buscar mensagens");
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.response?.data?.message || error.message);
     }
   };
 

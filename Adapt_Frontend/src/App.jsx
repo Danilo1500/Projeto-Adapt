@@ -21,10 +21,11 @@ import { fetchUser } from "./features/user/userSlice";
 import { fetchConnections } from "./features/connections/connectionsSlice";
 import { addMessage } from "./features/messages/messagesSlice";
 import Notification from "./pages/components/Notification";
+import Loading from "./pages/components/Loading";
 
 
 function App() {
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { getToken } = useAuth();
   const { pathname } = useLocation()
   const pathnameRef = useRef(pathname)
@@ -35,12 +36,12 @@ function App() {
     const fetchData = async () => {
       if (!user) return;
       try {
-        const token = await getToken();
+        const token = await getToken({ skipCache: true });
         if (!token) return;
-        dispatch(fetchUser(token));
+        await dispatch(fetchUser(token)).unwrap();
         dispatch(fetchConnections(token));
       } catch (error) {
-        console.warn("Clerk getToken failed", error);
+        console.warn("User bootstrap failed", error);
       }
     }
     fetchData()
@@ -53,8 +54,6 @@ function App() {
 
   useEffect(()=>{
     if(user){
-      let retryTimeout = 1000; // Start with 1 second
-
       const eventSource = new EventSource(import.meta.env.VITE_BASEURL + '/api/message/' + user.id);
 
       eventSource.onmessage = (event) => {
@@ -70,11 +69,7 @@ function App() {
       };
 
       eventSource.onerror = () => {
-        eventSource.close();
-        setTimeout(() => {
-          retryTimeout = Math.min(retryTimeout * 2, 30000); // Exponential backoff, max 30 seconds
-          window.location.reload(); // Reload to reinitialize the connection
-        }, retryTimeout);
+        console.warn("SSE connection interrupted. The browser will retry automatically.");
       };
 
       return () => {
@@ -82,6 +77,10 @@ function App() {
       };
     }
   },[user, dispatch])
+
+  if (!isUserLoaded) {
+    return <Loading />
+  }
 
   return (
     <>

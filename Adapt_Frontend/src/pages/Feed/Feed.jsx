@@ -7,37 +7,27 @@ import RecentMessages from '../components/RecentMessages'
 import { useAuth } from '@clerk/clerk-react'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
+import { requestWithAuth } from '../../utils/authRequest'
 
 const Feed = () => {
 
   const [feeds, setFeeds] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const { getToken, isLoaded } = useAuth()
+  const { getToken, isLoaded, isSignedIn } = useAuth()
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && isSignedIn) {
       fetchFeeds();
     }
-  }, [isLoaded])
+  }, [isLoaded, isSignedIn])
 
   const fetchFeeds = async () => {
     try {
       setLoading(true);
-      const token = await getToken()
-
-      if (!token) {
-        toast.error('Usuario nao autenticado')
-        return
-      }
-
-      const { data } = await api.get(
-        '/api/post/feed',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.get('/api/post/feed', { headers })
       )
 
 

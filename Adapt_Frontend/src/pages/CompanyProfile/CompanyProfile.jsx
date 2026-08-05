@@ -9,6 +9,7 @@ import UserProfileInfo from "../components/UserProfileInfo";
 import PostCard from "../components/PostCard";
 import CompanyProfileModal from "../components/CompanyProfileModal";
 import api from "../../api/axios";
+import { requestWithAuth } from "../../utils/authRequest";
 
 const dummyServices = [
   { id: "s1", title: "Monitoramento 24/7" },
@@ -53,11 +54,11 @@ const CompanyProfile = () => {
   const fetchCompany = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
       const endpoint = companyId ? `/api/company/${companyId}` : "/api/company/my";
-      const { data } = await api.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.get(endpoint, { headers })
+      );
 
       if (!data?.success || !data?.company) {
         toast.error(data?.message || "Nao foi possivel carregar a empresa.");

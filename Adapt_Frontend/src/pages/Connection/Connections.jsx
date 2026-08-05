@@ -7,6 +7,7 @@ import { fetchConnections } from '../../features/connections/connectionsSlice'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
 import { useTheme } from '../../context/ThemeContext'
+import { getAuthHeaders, requestWithAuth } from '../../utils/authRequest'
 
 const Connections = () => {
 
@@ -29,12 +30,14 @@ const Connections = () => {
 
   const handleUnfollow = async (userId) => {
     try {
-      const { data } = await api.post('/api/user/unfollow', {id: userId}, {
-        headers: {Authorization: `Bearer ${await getToken()}`}
-      })
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post('/api/user/unfollow', {id: userId}, { headers })
+      )
       if(data.success){
         toast.success(data.message)
-        dispatch(fetchConnections(await getToken()))
+        const headers = await getAuthHeaders(getToken, true)
+        dispatch(fetchConnections(headers.Authorization.replace('Bearer ', '')))
       }else{
         toast(data.message)
       }
@@ -45,12 +48,14 @@ const Connections = () => {
 
   const acceptConnection = async (userId) => {
     try {
-      const { data } = await api.post('/api/user/accept', {id: userId}, {
-        headers: {Authorization: `Bearer ${await getToken()}`}
-      })
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post('/api/user/accept', {id: userId}, { headers })
+      )
       if(data.success){
         toast.success(data.message)
-        dispatch(fetchConnections(await getToken()))
+        const headers = await getAuthHeaders(getToken, true)
+        dispatch(fetchConnections(headers.Authorization.replace('Bearer ', '')))
       }else{
         toast(data.message)
       }
@@ -60,9 +65,9 @@ const Connections = () => {
   }
 
   useEffect(()=>{
-    getToken().then((token)=>{
-      dispatch(fetchConnections(token))
-    })
+    getAuthHeaders(getToken, true)
+      .then((headers) => dispatch(fetchConnections(headers.Authorization.replace('Bearer ', ''))))
+      .catch((error) => toast.error(error.message))
   },[])
 
   return (

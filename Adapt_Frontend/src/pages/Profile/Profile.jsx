@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { dummyPostsData, dummyUserData } from '../assets/assets'
 import Loading from '../components/LoadingWhite'
@@ -10,12 +10,13 @@ import { useAuth } from '@clerk/clerk-react'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
 import { useSelector } from 'react-redux'
+import { Download, FileText } from 'lucide-react'
 
 const Profile = () => {
 
   const currentUser = useSelector((state)=>state.user.value)
 
-  const {getToken} = useAuth()
+  const {getToken, isLoaded, isSignedIn} = useAuth()
   const {profileId} = useParams()
   const [user, setUser] = useState(null)
   const [posts, setPosts] = useState([])
@@ -26,12 +27,36 @@ const Profile = () => {
     setPosts(prev => prev.filter(post => post._id !== postId))
   }
 
-  const fetchUser = async (profileId) => {
-    const token = await getToken()
+  const getAuthHeaders = useCallback(async (refresh = false) => {
+    if (!isLoaded || !isSignedIn) {
+      throw new Error('Sua sessao ainda nao esta pronta. Tente novamente em instantes.')
+    }
+
+    const token = await getToken(refresh ? { skipCache: true } : undefined)
+    if (!token) {
+      throw new Error('Nao foi possivel validar sua sessao. Recarregue a pagina e tente novamente.')
+    }
+
+    return { Authorization: `Bearer ${token}` }
+  }, [getToken, isLoaded, isSignedIn])
+
+  const requestWithAuth = useCallback(async (request) => {
     try {
-      const { data } = await api.post(`/api/user/profiles`, {profileId}, {
-        headers: {Authorization: `Bearer ${token}`}
-      })
+      return await request(await getAuthHeaders())
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        return request(await getAuthHeaders(true))
+      }
+
+      throw error
+    }
+  }, [getAuthHeaders])
+
+  const fetchUser = useCallback(async (profileId) => {
+    try {
+      const { data } = await requestWithAuth((headers) =>
+        api.post(`/api/user/profiles`, {profileId}, { headers })
+      )
       if(data.success){
         setUser(data.profile)
         setPosts(data.posts)
@@ -39,17 +64,33 @@ const Profile = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error?.response?.data?.message || error.message)
     }
-  }
+  }, [requestWithAuth])
 
   useEffect(()=>{
+    if (!isLoaded || !isSignedIn) return
+
     if(profileId){
       fetchUser(profileId)
-    }else{
+    }else if(currentUser?._id){
       fetchUser(currentUser._id)
     }
+  }, [profileId, currentUser?._id, fetchUser, isLoaded, isSignedIn])
+
+  useEffect(() => {
+    if (!profileId && currentUser?._id) {
+      setUser(currentUser)
+    }
   }, [profileId, currentUser])
+
+  const portfolio = user?.portfolio || {}
+  const portfolioSections = [
+    { title: 'Linguagens', items: portfolio.languages || [] },
+    { title: 'Bibliotecas', items: portfolio.libraries || [] },
+    { title: 'Frameworks', items: portfolio.frameworks || [] },
+  ]
+  const hasPortfolioItems = portfolioSections.some((section) => section.items.length > 0)
 
   return user ? (
     <div className='relative h-full overflow-y-scroll bg-gray-50 p-6 no-scrollbar'>
@@ -67,9 +108,9 @@ const Profile = () => {
         {/* Tabs */}
         <div className='mt-6'>
           <div className='bg-white rounded-xl shadow p-1 flex max-w-md mx-auto'>
-            {["posts","media","likes"].map((tab)=>(
+            {["posts","media","portfolio","likes"].map((tab)=>(
               <button onClick={()=> setActiveTab(tab)} key={tab} className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${activeTab === tab ? "bg-indigo-600 text-white" : "text-gray-600 hover:text-gray-900"}`}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === 'portfolio' ? 'Portfolio' : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
@@ -102,6 +143,55 @@ const Profile = () => {
                   </>
                 ))
               }
+            </div>
+          )}
+
+          {activeTab === 'portfolio' && (
+            <div className='mt-6 rounded-2xl bg-white p-6 shadow'>
+              <div className='mb-5 flex items-start justify-between gap-4'>
+                <div>
+                  <h2 className='text-xl font-semibold text-gray-900'>Portfolio tecnico</h2>
+                  <p className='text-sm text-gray-500'>Competencias, ferramentas e curriculo do perfil.</p>
+                </div>
+
+                {portfolio.resume?.url && (
+                  <a
+                    href={portfolio.resume.url}
+                    target='_blank'
+                    rel='noreferrer'
+                    className='inline-flex shrink-0 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition'
+                  >
+                    <Download className='h-4 w-4' />
+                    Curriculo
+                  </a>
+                )}
+              </div>
+
+              <div className='grid gap-4 md:grid-cols-3'>
+                {portfolioSections.map((section) => (
+                  <div key={section.title} className='rounded-xl border border-gray-100 p-4'>
+                    <h3 className='mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500'>{section.title}</h3>
+                    {section.items.length > 0 ? (
+                      <div className='flex flex-wrap gap-2'>
+                        {section.items.map((item, index) => (
+                          <span key={`${section.title}-${item}-${index}`} className='rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700'>
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className='text-sm text-gray-400'>Nada informado.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {!hasPortfolioItems && !portfolio.resume?.url && (
+                <div className='mt-5 flex items-center gap-3 rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500'>
+                  <FileText className='h-5 w-5 text-gray-400' />
+                  Nenhuma informacao de portfolio cadastrada ainda.
+                </div>
+              )}
             </div>
           )}
 

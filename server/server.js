@@ -16,7 +16,12 @@ import adminRouter from './routes/adminRoutes.js';
 
 const app = express();
 
-await connectDB();
+try {
+  await connectDB();
+} catch (error) {
+  console.error("Failed to connect to MongoDB:", error.message);
+  process.exit(1);
+}
 
 app.use(express.json());
 app.use(cors());

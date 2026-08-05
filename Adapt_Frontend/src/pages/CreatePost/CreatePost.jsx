@@ -7,6 +7,7 @@ import { useAuth } from '@clerk/clerk-react'
 import api from '../../api/axios'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../../context/ThemeContext'
+import { requestWithAuth } from '../../utils/authRequest'
 
 const CreatePost = () => {
 
@@ -37,7 +38,10 @@ const CreatePost = () => {
         formData.append('images', image)
       })
 
-      const { data } = await api.post('/api/post/add', formData, {headers: {Authorization: `Bearer ${await getToken()}`}})
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post('/api/post/add', formData, { headers })
+      )
 
       if(data.success){
         navigate('/')

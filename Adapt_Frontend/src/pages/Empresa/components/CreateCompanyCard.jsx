@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../../../api/axios";
 import { useTheme } from "../../../context/ThemeContext";
+import { requestWithAuth } from "../../../utils/authRequest";
 
 const initialForm = {
   name: "",
@@ -64,7 +65,6 @@ const CreateCompanyCard = () => {
 
       await setActive({ organization });
 
-      const token = await getToken();
       const payload = {
         clerkOrganizationId: organization.id,
         name: form.name.trim(),
@@ -79,9 +79,10 @@ const CreateCompanyCard = () => {
         certifications: [],
       };
 
-      const { data } = await api.post("/api/company/sync", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post("/api/company/sync", payload, { headers })
+      );
 
       if (!data.success) {
         toast.error(data.message || "Erro ao sincronizar empresa.");

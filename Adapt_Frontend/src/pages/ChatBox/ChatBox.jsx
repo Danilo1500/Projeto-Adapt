@@ -7,6 +7,7 @@ import { useAuth } from '@clerk/clerk-react'
 import api from '../../api/axios'
 import { addMessage, fetchMessages, resetMessages } from '../../features/messages/messagesSlice'
 import toast from 'react-hot-toast'
+import { getAuthHeaders, requestWithAuth } from '../../utils/authRequest'
 
 const ChatBox = () => {
 
@@ -24,7 +25,8 @@ const ChatBox = () => {
 
   const fetchUserMessages = async () => {
     try {
-      const token = await getToken()
+      const headers = await getAuthHeaders(getToken, true)
+      const token = headers.Authorization.replace('Bearer ', '')
       dispatch(fetchMessages({token, userId}))
     } catch (error) {
       toast.error(error.message)
@@ -35,15 +37,15 @@ const ChatBox = () => {
     try {
       if(!text && !image) return
 
-      const token = await getToken()
       const formData = new FormData()
       formData.append('to_user_id', userId)
       formData.append('text', text);
       image && formData.append('image', image);
 
-      const { data } = await api.post('/api/message/send', formData, {
-        headers: {Authorization: `Bearer ${token}` }
-      })
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post('/api/message/send', formData, { headers })
+      )
       if(data.success) {
         setText('')
         setImage(null)
@@ -76,31 +78,31 @@ const ChatBox = () => {
   },[messages])
 
   return user && (
-    <div className='flex flex-col min-h-[100dvh] w-full overflow-hidden'>
-      <div className='flex items-center gap-2 p-3 sm:px-6 md:px-10 xl:pl-20 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-300'>
-        <img src={user.profile_picture} alt="" className='size-8 rounded-full'/>
-        <div>
-          <p className='font-medium'>{user.full_name}</p>
-          <p className='text-sm text-gray-500 -mt-1.5'>@{user.username}</p>
+    <div className='flex h-full min-h-0 w-full flex-col overflow-hidden bg-slate-50'>
+      <div className='flex shrink-0 items-center gap-3 border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50 px-3 py-3 pr-16 sm:px-6 sm:pr-6 md:px-10 xl:pl-20'>
+        <img src={user.profile_picture} alt="" className='size-9 shrink-0 rounded-full object-cover'/>
+        <div className='min-w-0'>
+          <p className='truncate font-medium text-slate-800'>{user.full_name}</p>
+          <p className='-mt-1 truncate text-sm text-gray-500'>@{user.username}</p>
         </div>
       </div>
-      <div className='flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 md:px-10'>
-        <div className='space-y-4 w-full max-w-4xl mx-auto'>
+      <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6 md:px-10'>
+        <div className='mx-auto w-full max-w-4xl space-y-3 sm:space-y-4'>
           {
             messages.toSorted((a, b)=> new Date(a.createdAt) - new Date(b.createdAt)).map((message, index)=>(
               <div key={index} className={`flex flex-col ${message.to_user_id !== user._id ? 'items-start' : 'items-end'}`}>
-                <div className={`p-2 text-sm max-w-sm bg-white text-slate-700 rounded-lg shadow ${message.to_user_id !== user._id ? 'rounded-bl-none' : 'rounded-br-none'}`}>
+                <div className={`max-w-[82%] overflow-hidden rounded-lg bg-white p-2 text-sm text-slate-700 shadow sm:max-w-sm ${message.to_user_id !== user._id ? 'rounded-bl-none' : 'rounded-br-none'}`}>
                   {
                   message.message_type === 'image' && (
                     <img
                       src={message.media_url}
-                      className='w-full max-w-sm h-auto max-h-64 object-contain rounded-lg mb-1'
+                      className='mb-1 h-auto max-h-64 w-full rounded-lg object-contain'
                       alt=""
                       loading="lazy"
                     />
                   )
                   }
-                  <p>{message.text}</p>
+                  <p className='break-words'>{message.text}</p>
                 </div>
 
               </div>
@@ -109,15 +111,15 @@ const ChatBox = () => {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className='px-4 pb-4'>
-        <div className='flex items-center gap-3 px-4 py-1.5 bg-white w-full max-w-xl mx-auto border border-gray-200 shadow rounded-full'>
+      <div className='shrink-0 border-t border-gray-200 bg-slate-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 sm:px-6 sm:pb-4'>
+        <div className='mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 shadow sm:gap-3 sm:px-4'>
           <input
             type="text"
-            className='flex-1 outline-none text-slate-700 text-base bg-transparent'
+            className='min-w-0 flex-1 bg-transparent text-base text-slate-700 outline-none'
             placeholder='Type a message...'
           onKeyDown={e=>e.key === 'Enter' && sendMessage()} onChange={(e)=>setText(e.target.value)} value={text} />
 
-          <label htmlFor="image">
+          <label htmlFor="image" className='shrink-0'>
             {
               image 
               ? <img src={URL.createObjectURL(image)} alt="" className='h-8 w-8 object-cover rounded' /> 
@@ -126,7 +128,7 @@ const ChatBox = () => {
             <input type="file" id='image' accept='image/*' hidden onChange={(e)=>setImage(e.target.files[0])} />
           </label>
 
-          <button onClick={sendMessage} className='bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-700 hover:to-purple-800 active:scale-95 cursor-pointer text-white p-2 rounded-full'>
+          <button onClick={sendMessage} className='shrink-0 cursor-pointer rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-2 text-white hover:from-indigo-700 hover:to-purple-800 active:scale-95'>
             <SendHorizonal size={18}/>
           </button>
         </div>

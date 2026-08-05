@@ -1,11 +1,15 @@
+import { findOrCreateAuthenticatedUser } from "../utils/authUser.js";
+
 export const protect = async (req, res, next) => {
     try {
         const { userId } = req.auth();
         if(!userId){
-            return res.json({success: false, message: "Not authenticated" });
+            return res.status(401).json({success: false, message: "Not authenticated" });
         }
+
+        req.dbUser = await findOrCreateAuthenticatedUser(userId);
         next()
     } catch (error) {
-        res.json({success: false, message: error.message });
+        res.status(500).json({success: false, message: error.message });
     }
 }

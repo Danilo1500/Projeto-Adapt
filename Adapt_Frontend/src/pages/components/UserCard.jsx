@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../../api/axios'
 import toast from 'react-hot-toast'
 import { fetchUser } from '../../features/user/userSlice'
+import { getAuthHeaders, requestWithAuth } from '../../utils/authRequest'
 
 const UserCard = ({user}) => {
     const currentUser = useSelector((state)=>state.user.value)
@@ -16,12 +17,14 @@ const UserCard = ({user}) => {
 
     const handleFollow = async () => {
         try {
-            const { data } = await api.post('/api/user/follow', {id: user._id}, {
-                headers: {Authorization: `Bearer ${await getToken()}` }
-            })
+            const { data } = await requestWithAuth(
+                getToken,
+                (headers) => api.post('/api/user/follow', {id: user._id}, { headers })
+            )
             if (data.success) {
                 toast.success(data.message)
-                dispatch(fetchUser(await getToken()))
+                const headers = await getAuthHeaders(getToken, true)
+                dispatch(fetchUser(headers.Authorization.replace('Bearer ', '')))
             }else{
                 toast.error(data.message)
             }
@@ -36,9 +39,10 @@ const UserCard = ({user}) => {
         }
 
         try {
-            const { data } = await api.post('/api/user/connect', {id: user._id}, {
-                headers: {Authorization: `Bearer ${await getToken()}` }
-            })
+            const { data } = await requestWithAuth(
+                getToken,
+                (headers) => api.post('/api/user/connect', {id: user._id}, { headers })
+            )
             if (data.success) {
                 toast.success(data.message)
             }else{

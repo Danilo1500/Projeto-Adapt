@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { dummyUserData } from '../assets/assets'
-import { Pencil } from 'lucide-react';
+import { FileText, Pencil } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateUser } from '../../features/user/userSlice';
 import { useAuth } from '@clerk/clerk-react';
@@ -9,35 +8,50 @@ import toast from 'react-hot-toast';
 const ProfileModal = ({setShowEdit}) => {
 
   const dispatch = useDispatch();
-  const {getToken} = useAuth();
+  const {getToken, isLoaded, isSignedIn} = useAuth();
 
     const user = useSelector((state) => state.user.value)
+    const tagsToString = (items) => Array.isArray(items) ? items.join(', ') : ''
     const [editForm, setEditForm] = useState({
         username: user.username,
         bio: user.bio,
         location: user.location,
         profile_picture: null,
         cover_photo: null,
+        resume: null,
         full_name: user.full_name,
+        languages: tagsToString(user.portfolio?.languages),
+        libraries: tagsToString(user.portfolio?.libraries),
+        frameworks: tagsToString(user.portfolio?.frameworks),
     })
 
     const handleSaveProfile = async (e) => {
         e.preventDefault();
         try {
+          if (!isLoaded || !isSignedIn) {
+            throw new Error('Sua sessao ainda nao esta pronta. Tente novamente em instantes.')
+          }
 
           const userData = new FormData();
-          const {full_name, username, bio, location, profile_picture, cover_photo} = editForm
+          const {full_name, username, bio, location, profile_picture, cover_photo, resume, languages, libraries, frameworks} = editForm
 
           userData.append('username', username)
           userData.append('bio', bio)
           userData.append('location', location)
           userData.append('full_name', full_name)
+          userData.append('languages', languages)
+          userData.append('libraries', libraries)
+          userData.append('frameworks', frameworks)
           profile_picture && userData.append('profile', profile_picture)
           cover_photo && userData.append('cover', cover_photo)
+          resume && userData.append('resume', resume)
 
+          const token = await getToken({ skipCache: true })
+          if (!token) {
+            throw new Error('Nao foi possivel validar sua sessao. Recarregue a pagina e tente novamente.')
+          }
 
-          const token = await getToken()
-          dispatch(updateUser({userData, token}))
+          await dispatch(updateUser({userData, token})).unwrap()
 
           setShowEdit(false)
         } catch (error) {
@@ -109,6 +123,45 @@ const ProfileModal = ({setShowEdit}) => {
                             Location
                         </label>
                         <input type="text" className='w-full p-3 border border-gray-200 rounded-lg' placeholder='Please enter your location' onChange={(e)=>setEditForm({...editForm, location: e.target.value})} value={editForm.location}/>
+                    </div>
+
+                    <div className='border-t border-gray-100 pt-4'>
+                        <h2 className='text-lg font-semibold text-gray-900'>Portfolio</h2>
+                        <p className='text-sm text-gray-500'>Separe os itens por virgula.</p>
+                    </div>
+
+                    <div>
+                        <label className='block text-sm font-medium text-gray-700 mb-1'>
+                            Linguagens
+                        </label>
+                        <input type="text" className='w-full p-3 border border-gray-200 rounded-lg' placeholder='JavaScript, Python, Java' onChange={(e)=>setEditForm({...editForm, languages: e.target.value})} value={editForm.languages}/>
+                    </div>
+
+                    <div>
+                        <label className='block text-sm font-medium text-gray-700 mb-1'>
+                            Bibliotecas
+                        </label>
+                        <input type="text" className='w-full p-3 border border-gray-200 rounded-lg' placeholder='React Query, Redux, Pandas' onChange={(e)=>setEditForm({...editForm, libraries: e.target.value})} value={editForm.libraries}/>
+                    </div>
+
+                    <div>
+                        <label className='block text-sm font-medium text-gray-700 mb-1'>
+                            Frameworks
+                        </label>
+                        <input type="text" className='w-full p-3 border border-gray-200 rounded-lg' placeholder='React, Next.js, Express, Django' onChange={(e)=>setEditForm({...editForm, frameworks: e.target.value})} value={editForm.frameworks}/>
+                    </div>
+
+                    <div>
+                        <label htmlFor="resume" className='block text-sm font-medium text-gray-700 mb-1'>
+                            Curriculo
+                        </label>
+                        <label htmlFor="resume" className='flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/40 transition'>
+                            <FileText className='h-5 w-5 text-indigo-500' />
+                            <span>
+                                {editForm.resume?.name || user.portfolio?.resume?.fileName || 'Enviar PDF, DOC ou DOCX'}
+                            </span>
+                            <input hidden type="file" accept='.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' id='resume' onChange={(e)=>setEditForm({...editForm, resume: e.target.files[0]})}/>
+                        </label>
                     </div>
 
                     <div className='flex justify-end space-x-3 pt-6'>

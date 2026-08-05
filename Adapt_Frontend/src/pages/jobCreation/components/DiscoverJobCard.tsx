@@ -1,10 +1,17 @@
-﻿import { Building2, Clock3, ExternalLink, MapPin, Target } from "lucide-react";
+import { useState } from "react";
+import { Building2, Clock3, ExternalLink, MapPin, Sparkles, Target } from "lucide-react";
 import { JobData } from "../JobCreation";
 
 type JobCardData = JobData & {
   externalUrl?: string;
   sourceLabel?: string;
   salary?: string;
+  aiMatch?: {
+    score?: number;
+    matchReasons?: string[];
+    missingSkills?: string[];
+    summary?: string;
+  };
 };
 
 type Props = {
@@ -20,13 +27,17 @@ function formatDate(value?: string | Date) {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 }
 
-export default function JobCard({ job, onApply, onDelete }: Props) {
+export default function DiscoverJobCard({ job, onApply, onDelete }: Props) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const salary =
     job.salary
       ? job.salary
       : job.salaryMin || job.salaryMax
       ? `${job.currency ?? ""} ${job.salaryMin ?? ""}${job.salaryMax ? " - " + job.salaryMax : ""}`
       : "A combinar";
+
+  const description = job.description?.trim() || "";
+  const shouldCollapseDescription = description.length > 180;
 
   const handleApply = () => {
     if (onApply) {
@@ -77,7 +88,50 @@ export default function JobCard({ job, onApply, onDelete }: Props) {
             </div>
           </div>
 
-          {job.description && <p className="mt-4 text-slate-700">{job.description}</p>}
+          {job.aiMatch && (
+            <div className="mt-4 rounded-lg border border-indigo-100 bg-indigo-50 p-4">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm font-semibold text-indigo-700">
+                  <Sparkles className="h-4 w-4" />
+                  {job.aiMatch.score ?? 0}% compativel
+                </span>
+                {job.aiMatch.summary && (
+                  <span className="text-sm text-slate-700">{job.aiMatch.summary}</span>
+                )}
+              </div>
+
+              {Array.isArray(job.aiMatch.matchReasons) && job.aiMatch.matchReasons.length > 0 && (
+                <ul className="space-y-1 text-sm text-slate-700">
+                  {job.aiMatch.matchReasons.slice(0, 3).map((reason, index) => (
+                    <li key={`${reason}-${index}`}>- {reason}</li>
+                  ))}
+                </ul>
+              )}
+
+              {Array.isArray(job.aiMatch.missingSkills) && job.aiMatch.missingSkills.length > 0 && (
+                <p className="mt-2 text-sm text-slate-500">
+                  Aprender depois: {job.aiMatch.missingSkills.slice(0, 4).join(", ")}
+                </p>
+              )}
+            </div>
+          )}
+
+          {description && (
+            <div className="mt-4">
+              <p className={`text-slate-700 whitespace-pre-wrap ${!isExpanded ? "line-clamp-3" : ""}`}>
+                {description}
+              </p>
+              {shouldCollapseDescription && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded((current) => !current)}
+                  className="mt-2 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+                >
+                  {isExpanded ? "Ler menos" : "Ler mais"}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
             <div className="flex flex-wrap items-center gap-3">

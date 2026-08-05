@@ -1,11 +1,12 @@
 import { BadgeCheck, Heart, MessageCircle, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useAuth } from "@clerk/clerk-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
+import { requestWithAuth } from "../../utils/authRequest";
 
 const PostCard = ({ post, showDelete = false, onDeleted }) => {
 
@@ -14,8 +15,10 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState([])
   const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
   const [commentText, setCommentText] = useState("")
   const [commentsCount, setCommentsCount] = useState(post.comments_count ?? 0)
+  const commentSubmittingRef = useRef(false)
   const currentUser = useSelector((state)=> state.user.value)
   const isOwner = currentUser?._id === post.user._id
 
@@ -23,7 +26,10 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
 
   const handleLike = async (params) => {
     try {
-      const { data } = await api.post(`/api/post/like`, {postId: post._id}, {headers: {Authorization: `Bearer ${await getToken()}` }})
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post(`/api/post/like`, {postId: post._id}, { headers })
+      )
 
       if(data.success){
         toast.success(data.message)
@@ -47,7 +53,10 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
     const confirmed = window.confirm("Tem certeza que deseja apagar este post?")
     if (!confirmed) return
     try {
-      const { data } = await api.post(`/api/post/delete`, { postId: post._id }, { headers: { Authorization: `Bearer ${await getToken()}` } })
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post(`/api/post/delete`, { postId: post._id }, { headers })
+      )
       if (data.success) {
         toast.success(data.message)
         if (typeof onDeleted === "function") {
@@ -66,9 +75,10 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
   const fetchComments = async () => {
     try {
       setCommentsLoading(true)
-      const { data } = await api.get(`/api/comment/post/${post._id}`, {
-        headers: { Authorization: `Bearer ${await getToken()}` }
-      })
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.get(`/api/comment/post/${post._id}`, { headers })
+      )
       if (data.success) {
         setComments(data.comments)
         setCommentsCount(data.comments.length)
@@ -92,22 +102,38 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
 
   const handleAddComment = async (e) => {
     e.preventDefault()
-    if (!commentText.trim()) return
+    const content = commentText.trim()
+    if (!content || commentSubmittingRef.current) return
+
+    commentSubmittingRef.current = true
+    setCommentSubmitting(true)
     try {
-      const { data } = await api.post(
-        `/api/comment/add`,
-        { postId: post._id, content: commentText.trim() },
-        { headers: { Authorization: `Bearer ${await getToken()}` } }
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post(
+          `/api/comment/add`,
+          { postId: post._id, content },
+          { headers }
+        )
       )
       if (data.success) {
-        setComments(prev => [data.comment, ...prev])
+        const commentAlreadyExists = comments.some(comment => comment._id === data.comment._id)
+        setComments(prev => {
+          if (prev.some(comment => comment._id === data.comment._id)) return prev
+          return [data.comment, ...prev]
+        })
         setCommentText("")
-        setCommentsCount(prev => prev + 1)
+        if (!commentAlreadyExists) {
+          setCommentsCount(prev => prev + 1)
+        }
       } else {
         toast.error(data.message)
       }
     } catch (error) {
       toast.error(error.message)
+    } finally {
+      commentSubmittingRef.current = false
+      setCommentSubmitting(false)
     }
   }
 
@@ -161,7 +187,7 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
             <Heart className={`w-4 h-4 cursor-pointer ${likes.includes(currentUser._id) && 'text-red-500 fill-red-500'}`} onClick={handleLike}/>
             <span>{likes.length}</span>
           </div>
-          <button type="button" className="flex items-center gap-1" onClick={handleToggleComments}>
+          <button type="button" className="flex items-center gap-1 cursor-pointer" onClick={handleToggleComments}>
             <MessageCircle className="w-4 h-4"/>
             <span>{commentsCount}</span>
           </button>
@@ -191,9 +217,10 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
                 <div className="flex justify-end mt-1">
                   <button
                     type="submit"
-                    className="text-xs px-3 py-1 rounded-full bg-indigo-600 text-white hover:bg-indigo-700"
+                    disabled={commentSubmitting || !commentText.trim()}
+                    className="text-xs px-3 py-1 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Comentar
+                    {commentSubmitting ? "Enviando..." : "Comentar"}
                   </button>
                 </div>
               </div>

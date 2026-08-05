@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { ChevronUp, Search, Sparkles } from "lucide-react";
 import UserCard from "../components/UserCard";
 import CompanyCard from "../components/CompanyCard";
 import Loading from "../components/LoadingWhite";
-import JobCard from "../jobCreation/components/JobCard";
+import DiscoverJobCard from "../jobCreation/components/DiscoverJobCard";
 import api from "../../api/axios";
 import { useAuth } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
@@ -16,29 +16,62 @@ const Discover = () => {
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [jobs, setJobs] = useState([]);
+  const [jobSources, setJobSources] = useState({ internal: 0, external: 0 });
+  const [recommendedMode, setRecommendedMode] = useState(false);
+  const [recommendationsUsedAI, setRecommendationsUsedAI] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { getToken } = useAuth();
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const scrollContainerRef = useRef(null);
 
   const tabs = ["vagas", "pessoas", "empresas"];
   const [activeTab, setActiveTab] = useState("pessoas");
 
+  const getAuthHeaders = async (refresh = false) => {
+    if (!isLoaded || !isSignedIn) {
+      throw new Error("Sua sessao ainda nao esta pronta. Tente novamente em instantes.");
+    }
+
+    const token = await getToken(refresh ? { skipCache: true } : undefined);
+
+    if (!token) {
+      throw new Error("Nao foi possivel validar sua sessao. Recarregue a pagina e tente novamente.");
+    }
+
+    return { Authorization: `Bearer ${token}` };
+  };
+
+  const requestWithAuth = async (request) => {
+    try {
+      return await request(await getAuthHeaders());
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        return request(await getAuthHeaders(true));
+      }
+
+      throw error;
+    }
+  };
+
   const fetchUsers = async (searchText = "") => {
-    const token = await getToken();
-    const { data } = await api.post(
-      "/api/user/discover",
-      { input: searchText },
-      { headers: { Authorization: `Bearer ${token}` } }
+    const { data } = await requestWithAuth((headers) =>
+      api.post(
+        "/api/user/discover",
+        { input: searchText },
+        { headers }
+      )
     );
     if (!data.success) throw new Error(data.message);
     setUsers(data.users || []);
   };
 
   const fetchCompanies = async (searchText = "") => {
-    const token = await getToken();
-    const { data } = await api.get("/api/company/list", {
-      params: { q: searchText },
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data } = await requestWithAuth((headers) =>
+      api.get("/api/company/list", {
+        params: { q: searchText },
+        headers,
+      })
+    );
     if (!data.success) throw new Error(data.message);
     setCompanies(data.companies || []);
   };
@@ -50,10 +83,29 @@ const Discover = () => {
     if (!data.success) throw new Error(data.message);
     const mapped = (data.jobs || []).map((job) => ({
       ...job,
-      id: job._id,
+      id: job._id || job.id,
       createdAt: job.createdAt ? new Date(job.createdAt) : undefined,
     }));
     setJobs(mapped);
+    setJobSources(data.sources || { internal: 0, external: 0 });
+    setRecommendedMode(false);
+    setRecommendationsUsedAI(false);
+  };
+
+  const fetchRecommendedJobs = async () => {
+    const { data } = await requestWithAuth((headers) =>
+      api.get("/api/job/recommended", { headers })
+    );
+    if (!data.success) throw new Error(data.message);
+    const mapped = (data.jobs || []).map((job) => ({
+      ...job,
+      id: job._id || job.id,
+      createdAt: job.createdAt ? new Date(job.createdAt) : undefined,
+    }));
+    setJobs(mapped);
+    setJobSources({ internal: 0, external: 0 });
+    setRecommendedMode(true);
+    setRecommendationsUsedAI(Boolean(data.usedAI));
   };
 
   const handleSearch = async (event) => {
@@ -74,13 +126,25 @@ const Discover = () => {
     }
   };
 
+  const handleRecommendedJobs = async () => {
+    try {
+      setLoading(true);
+      await fetchRecommendedJobs();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleJoinCompany = async (companyId) => {
     try {
-      const token = await getToken();
-      const { data } = await api.post(
-        `/api/company/${companyId}/join`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+      const { data } = await requestWithAuth((headers) =>
+        api.post(
+          `/api/company/${companyId}/join`,
+          {},
+          { headers }
+        )
       );
       if (!data.success) {
         toast.error(data.message || "Nao foi possivel participar da empresa.");
@@ -95,6 +159,8 @@ const Discover = () => {
 
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!isLoaded || !isSignedIn) return;
+
       try {
         setLoading(true);
         if (activeTab === "pessoas") {
@@ -111,10 +177,34 @@ const Discover = () => {
       }
     };
     loadInitialData();
-  }, [activeTab]);
+  }, [activeTab, isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScrollVisibility = () => {
+      setShowScrollTop(container.scrollTop > 260);
+    };
+
+    handleScrollVisibility();
+    container.addEventListener("scroll", handleScrollVisibility);
+
+    return () => {
+      container.removeEventListener("scroll", handleScrollVisibility);
+    };
+  }, []);
+
+  const handleScrollToTop = () => {
+    scrollContainerRef.current?.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <div
+      ref={scrollContainerRef}
       className={`h-full overflow-y-auto no-scrollbar ${
         isDark ? "bg-slate-900" : "bg-gradient-to-b from-slate-50 to-white"
       }`}
@@ -186,21 +276,51 @@ const Discover = () => {
         {!loading && (
           <>
             {activeTab === "vagas" && (
-              <div className="flex flex-wrap gap-6">
-                {jobs && jobs.length > 0 ? (
-                  jobs.map((job) => (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      onApply={() => {}}
-                    />
-                  ))
-                ) : (
-                  <div className={`text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                    Nenhuma vaga encontrada.
+              <>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className={isDark ? "text-sm text-slate-300" : "text-sm text-slate-600"}>
+                    {recommendedMode
+                      ? recommendationsUsedAI
+                        ? "Vagas ordenadas pela analise de IA do seu portfolio."
+                        : "Vagas ordenadas por compatibilidade tecnica basica."
+                      : "Busque vagas ou gere recomendacoes com base no seu portfolio."}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRecommendedJobs}
+                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Recomendar com IA
+                  </button>
+                </div>
+
+                {jobSources.external > 0 && (
+                  <div
+                    className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
+                      isDark
+                        ? "border-slate-700 bg-slate-800 text-slate-300"
+                        : "border-indigo-100 bg-indigo-50 text-slate-700"
+                    }`}
+                  >
+                    Esta demonstracao inclui {jobSources.external} vagas da Remotive para enriquecer a busca.
                   </div>
                 )}
-              </div>
+                <div className="flex flex-wrap gap-6">
+                  {jobs && jobs.length > 0 ? (
+                    jobs.map((job) => (
+                      <DiscoverJobCard
+                        key={job.id}
+                        job={job}
+                      />
+                    ))
+                  ) : (
+                    <div className={`text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                      Nenhuma vaga encontrada.
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
             {activeTab === "pessoas" && (
@@ -236,6 +356,37 @@ const Discover = () => {
           </>
         )}
       </div>
+
+      <button
+        type="button"
+        aria-label="Voltar ao topo"
+        onClick={handleScrollToTop}
+        className={`fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full border shadow-xl transition-all duration-500 ease-out ${
+          isDark
+            ? "border-slate-600 bg-slate-800 text-slate-100 shadow-slate-950/40"
+            : "border-white/70 bg-white text-slate-900 shadow-indigo-200/80"
+        } ${
+          showScrollTop
+            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none translate-y-4 scale-75 opacity-0"
+        }`}
+      >
+        <span
+          className={`pointer-events-none absolute inset-0 rounded-full ${
+            showScrollTop ? "animate-ping opacity-20" : "opacity-0"
+          } ${isDark ? "bg-cyan-400" : "bg-indigo-400"}`}
+        />
+        <span
+          className={`pointer-events-none absolute inset-[3px] rounded-full transition-all duration-500 ${
+            isDark
+              ? "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
+              : "bg-gradient-to-br from-white via-indigo-50 to-cyan-100"
+          } ${showScrollTop ? "scale-100 opacity-100" : "scale-50 opacity-0"}`}
+        />
+        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-sky-500 to-cyan-400 text-white shadow-lg">
+          <ChevronUp className="h-5 w-5" />
+        </span>
+      </button>
     </div>
   );
 };

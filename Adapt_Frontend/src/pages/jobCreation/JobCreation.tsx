@@ -9,6 +9,7 @@ import { JobsListView } from './components/JobsListView';
 import { useAuth } from '@clerk/clerk-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import { requestWithAuth } from '../../utils/authRequest';
 
 export interface JobData {
   id?: string;
@@ -62,10 +63,10 @@ export default function JobCreation() {
   const fetchJobs = async () => {
     setIsLoading(true);
     try {
-      const token = await getToken();
-      const { data } = await api.get('/api/job/mine', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers: Record<string, string>) => api.get('/api/job/mine', { headers })
+      );
       if (data.success) {
         const mapped = (data.jobs || []).map((job: any) => ({
           ...job,
@@ -143,12 +144,12 @@ export default function JobCreation() {
     };
 
     try {
-      const token = await getToken();
       const endpoint = editingJobId ? '/api/job/update' : '/api/job/create';
       const body = editingJobId ? { ...payload, jobId: editingJobId } : payload;
-      const { data } = await api.post(endpoint, body, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers: Record<string, string>) => api.post(endpoint, body, { headers })
+      );
       if (data.success) {
         toast.success(data.message);
         if (!editingJobId) {
@@ -182,12 +183,12 @@ export default function JobCreation() {
     };
 
     try {
-      const token = await getToken();
       const endpoint = editingJobId ? '/api/job/update' : '/api/job/draft';
       const body = editingJobId ? { ...payload, jobId: editingJobId } : payload;
-      const { data } = await api.post(endpoint, body, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers: Record<string, string>) => api.post(endpoint, body, { headers })
+      );
       if (data.success) {
         toast.success(data.message);
         setView('list');
@@ -228,11 +229,13 @@ export default function JobCreation() {
     }
 
     try {
-      const token = await getToken();
-      const { data } = await api.post(
-        '/api/job/delete',
-        { jobId: id },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers: Record<string, string>) => api.post(
+          '/api/job/delete',
+          { jobId: id },
+          { headers }
+        )
       );
       if (data.success) {
         toast.success(data.message);
@@ -354,3 +357,6 @@ export default function JobCreation() {
     </div>
   );
 }
+
+
+

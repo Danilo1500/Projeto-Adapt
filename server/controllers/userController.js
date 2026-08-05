@@ -5,12 +5,22 @@ import Post from "../models/Post.js"
 import User from "../models/User.js"
 import fs from 'fs' 
 
+const parseTags = (value) => {
+    if (Array.isArray(value)) {
+        return value.map((item) => String(item).trim()).filter(Boolean);
+    }
+
+    return String(value || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
 
 // Get User Data using userId
 export const getUserData = async (req, res) => {
     try {
         const { userId } = req.auth();
-        const user = await User.findById(userId);
+        const user = req.dbUser || await User.findById(userId);
         if (!user) {
             console.error("User not found for userId:", userId);
             return res.status(404).json({ success: false, message: "User not found" });
@@ -26,7 +36,7 @@ export const getUserData = async (req, res) => {
 export const updateUserData = async (req, res) => {
     try {
         const { userId } = req.auth();
-        let { username, bio, location, full_name } = req.body;
+        let { username, bio, location, full_name, languages, libraries, frameworks } = req.body;
 
         const tempUser = await User.findById(userId);
         if (!tempUser) {
@@ -44,15 +54,23 @@ export const updateUserData = async (req, res) => {
             }
         }
 
+        const currentPortfolio = tempUser.portfolio || {};
         const updatedData = {
             username,
             bio,
             location,
             full_name,
+            portfolio: {
+                languages: languages === undefined ? currentPortfolio.languages || [] : parseTags(languages),
+                libraries: libraries === undefined ? currentPortfolio.libraries || [] : parseTags(libraries),
+                frameworks: frameworks === undefined ? currentPortfolio.frameworks || [] : parseTags(frameworks),
+                resume: currentPortfolio.resume || { url: "", fileName: "" },
+            },
         };
 
         const profile = req.files.profile && req.files.profile[0]
         const cover = req.files.cover && req.files.cover[0]
+        const resume = req.files.resume && req.files.resume[0]
 
         if(profile) {
             const buffer = fs.readFileSync(profile.path)
@@ -88,6 +106,20 @@ export const updateUserData = async (req, res) => {
                 ]
             })
             updatedData.cover_photo = url;
+        }
+
+        if(resume) {
+            const buffer = fs.readFileSync(resume.path)
+            const response = await imagekit.upload({
+                file : buffer,
+                fileName : resume.originalname,
+                folder: "/resumes",
+            })
+
+            updatedData.portfolio.resume = {
+                url: response.url,
+                fileName: resume.originalname,
+            };
         }
 
         const user = await User.findByIdAndUpdate(userId, updatedData, { new: true });

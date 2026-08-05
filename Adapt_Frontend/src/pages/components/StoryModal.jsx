@@ -3,6 +3,7 @@ import { ArrowLeft, Sparkle, TextIcon, Upload } from "lucide-react";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../api/axios";
+import { requestWithAuth } from "../../utils/authRequest";
 
 const StoryModal = ({ setShowModal, fetchStories }) => {
   const bgColors = [
@@ -73,11 +74,11 @@ const StoryModal = ({ setShowModal, fetchStories }) => {
       formData.append('media', media);
       formData.append('background_color', background);
 
-      const token = await getToken();
       try {
-        const { data } = await api.post('/api/story/create', formData, {
-          headers: {Authorization: `Bearer ${token}` }
-        })
+        const { data } = await requestWithAuth(
+          getToken,
+          (headers) => api.post('/api/story/create', formData, { headers })
+        )
 
         if(data.success){
           setShowModal(false)
@@ -87,7 +88,7 @@ const StoryModal = ({ setShowModal, fetchStories }) => {
           toast.error(data.message)
         }
       } catch (error) {
-        toast.error(error.message)
+        toast.error(error?.response?.data?.message || error.message)
       }
   }
 

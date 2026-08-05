@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "@clerk/clerk-react";
 import api from "../../api/axios";
 import { Pencil } from "lucide-react";
+import { requestWithAuth } from "../../utils/authRequest";
 
 const tagsToString = (values) => (Array.isArray(values) ? values.join(", ") : "");
 const stringToTags = (value) =>
@@ -43,7 +44,6 @@ const CompanyProfileModal = ({ company, setShowEdit, onSaved }) => {
 
     setLoading(true);
     try {
-      const token = await getToken();
       const payload = new FormData();
       payload.append("name", form.name.trim());
       payload.append("slug", form.slug.trim());
@@ -57,9 +57,10 @@ const CompanyProfileModal = ({ company, setShowEdit, onSaved }) => {
       if (form.logo) payload.append("logo", form.logo);
       if (form.cover) payload.append("cover", form.cover);
 
-      const { data } = await api.post("/api/company/update", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post("/api/company/update", payload, { headers })
+      );
 
       if (!data?.success) {
         toast.error(data?.message || "Nao foi possivel salvar as alteracoes.");

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="18" uniqueCount="18"><si><t>Valéria Cristina Leite Baccili</t></si><si><t>Inglês 1 e Inglês 1</t></si><si><t>Aprimorando de elaboração de prompts para IA</t></si><si><t>Jéssica Antonio Delgado</t></si><si><t>Estatística Aplicada</t></si><si><t>Analisar dados, inserir gráficos ou tabelas, Identificar padrões, tendências ou comportamentos do público-alvo;Avaliar resultados e impactos das soluções propostas no projeto.</t></si><si><t>Gustavo José Corrêa Gonçalves</t></si><si><t>Computação em Nuvem</t></si><si><t>Comunicação usando a Arduino Cloud + ESP32 para criar um sistema de IoT. Pode ser aplicado a diferentes propósitos.</t></si><si><t>Vinicius Godoy Marques</t></si><si><t>Inteligência Artificial e Aprendizagem de Máquina</t></si><si><t>1 - Aplicação de algoritmos de machine learning para análise de dados coletados no projeto.
+2 - Implementação de sistemas que utilizam aprendizado supervisionado para automatizar tarefas repetitivas.
+3 - Uso de redes neurais para reconhecimento de padrões em imagens, texto ou sinais.
+4 - Desenvolvimento de chatbots ou assistentes virtuais utilizando NLP (Processamento de Linguagem Natural).
+5 - Personalização de recomendações com sistemas de recomendação baseados em IA.
+6 - Aplicação de técnicas de detecção de anomalias para identificar possíveis falhas ou fraudes em sistemas.
+7 - Uso de IA para análise de comportamento do usuário e ajustes automáticos na interface.
+8 - Aplicação de técnicas de reconhecimento de emoções para melhorar a interação com o sistema.</t></si><si><t>Isaque Katahira</t></si><si><t>Programação Multiplataforma e BI- Big Data</t></si><si><t>Sugestões de Contribuição das Disciplinas de Programação Multiplataforma e Business Intelligence e Big Data para o Projeto Integrador
+1. Integração da Programação Multiplataforma
+Desenvolvimento de Aplicações Acessíveis em Diversos Dispositivos
+A Programação Multiplataforma pode contribuir com o desenvolvimento de aplicações que funcionem em diferentes sistemas operacionais (Windows, macOS, Linux) e dispositivos (desktops, notebooks, tablets, smartphones). Isso garante que o projeto tenha um alcance maior e seja acessível a um público diversificado.
+
+Exemplo Prático
+Desenvolvimento de um aplicativo de gerenciamento de tarefas que pode ser usado tanto em um desktop quanto em um smartphone, permitindo que os usuários acessem e atualizem suas tarefas de qualquer lugar.
+
+Criação de Interfaces de Usuário Adaptáveis
+Os alunos podem aprender a criar interfaces de usuário que se adaptam a diferentes tamanhos de tela e resoluções, garantindo uma experiência de usuário consistente e agradável em todos os dispositivos.
+
+Exemplo Prático
+Desenvolvimento de um site responsivo para uma pequena empresa, que se adapta automaticamente a dispositivos móveis, tablets e desktops, proporcionando uma navegação intuitiva e eficiente em todos os casos.
+
+Uso de Frameworks Multiplataforma
+A disciplina pode ensinar o uso de frameworks como React Native, Flutter ou Xamarin, que permitem o desenvolvimento de aplicativos nativos para iOS e Android a partir de uma única base de código.
+
+Exemplo Prático
+Desenvolvimento de um aplicativo de e-commerce utilizando React Native, que pode ser implantado tanto na App Store quanto na Google Play Store, economizando tempo e recursos no desenvolvimento.
+
+2. Integração de Business Intelligence e Big Data
+Coleta e Análise de Dados Relevantes
+A disciplina de Business Intelligence e Big Data pode contribuir com a coleta e análise de dados relevantes para o projeto, fornecendo insights valiosos que podem ser usados para tomar decisões informadas e otimizar o desempenho do projeto.
+
+Exemplo Prático
+Em um projeto de desenvolvimento de um aplicativo de saúde, os alunos podem coletar e analisar dados sobre hábitos de vida dos usuários, como padrões de sono, níveis de atividade física e preferências alimentares, para fornecer recomendações personalizadas de saúde.
+
+Criação de Dashboards e Visualizações de Dados
+Os alunos podem aprender a criar dashboards e visualizações de dados interativas, que permitem aos usuários explorar e entender os dados de forma fácil e intuitiva.
+
+Exemplo Prático
+Desenvolvimento de um dashboard para uma empresa de varejo, que mostra as vendas por produto, região e período, permitindo que os gerentes identifiquem tendências e tomem decisões estratégicas com base em dados.
+
+Implementação de Soluções de Big Data
+A disciplina pode ensinar o uso de tecnologias de Big Data, como Hadoop, Spark ou NoSQL, para processar e analisar grandes volumes de dados de forma eficiente.
+
+Exemplo Prático
+Em um projeto de análise de redes sociais, os alunos podem usar o Spark para processar e analisar grandes volumes de dados de posts e comentários, identificando tendências de opinião e sentimentos sobre determinados temas.
+
+3. Combinação de Programação Multiplataforma e Business Intelligence
+Desenvolvimento de Aplicações Inteligentes
+A combinação das duas disciplinas pode levar ao desenvolvimento de aplicações inteligentes, que utilizam dados para fornecer funcionalidades personalizadas e adaptativas.
+
+Exemplo Prático
+Desenvolvimento de um aplicativo de recomendação de filmes, que utiliza dados sobre o histórico de visualizações e preferências dos usuários para fornecer recomendações personalizadas de filmes e séries.
+
+Criação de Soluções de Monitoramento e Análise em Tempo Real
+Os alunos podem aprender a criar soluções de monitoramento e análise em tempo real, que utilizam dados de sensores e outras fontes para fornecer informações atualizadas sobre o desempenho de sistemas e processos.
+
+Exemplo Prático
+Desenvolvimento de um sistema de monitoramento de tráfego urbano, que utiliza dados de sensores de tráfego e câmeras para fornecer informações em tempo real sobre o fluxo de veículos, congestionamentos e acidentes, permitindo que os usuários planejem suas rotas de forma mais eficiente.
+
+Desenvolvimento de Aplicações de Internet das Coisas (IoT)
+A combinação das duas disciplinas é perfeita para o desenvolvimento de aplicações de Internet das Coisas (IoT), que utilizam dados de sensores e outros dispositivos para automatizar tarefas e processos.
+
+Exemplo Prático
+Desenvolvimento de um sistema de irrigação inteligente, que utiliza dados de sensores de umidade do solo e previsão do tempo para automatizar a irrigação de plantações, economizando água e otimizando o crescimento das plantas.
+
+4. Sugestões Específicas de Projetos Integradores
+Plataforma de Análise de Desempenho Acadêmico
+Programação Multiplataforma: Desenvolvimento de uma aplicação acessível via web e mobile para alunos e professores.
+Business Intelligence e Big Data: Coleta e análise de dados de desempenho (notas, frequência, participação) para identificar padrões de sucesso e áreas de melhoria. Criação de dashboards personalizados para cada aluno e para a gestão escolar.
+Sistema de Recomendação de Conteúdo Educacional Personalizado
+Programação Multiplataforma: Criação de um aplicativo que roda em diferentes dispositivos, integrando vídeos, textos e exercícios.
+Business Intelligence e Big Data: Análise do histórico de aprendizado do aluno para recomendar conteúdos que se adaptem ao seu ritmo e estilo de aprendizagem.
+Aplicação de Monitoramento Ambiental
+Programação Multiplataforma: Desenvolvimento de um aplicativo para coleta de dados ambientais (temperatura, umidade, qualidade do ar) através de sensores.
+Business Intelligence e Big Data: Análise dos dados coletados para identificar padrões de poluição, prever desastres naturais e fornecer informações para a tomada de decisões ambientais.
+Sistema de Gerenciamento de Energia Inteligente
+Programação Multiplataforma: Criação de um aplicativo para controlar o consumo de energia em residências ou empresas.
+Business Intelligence e Big Data: Análise dos dados de consumo para identificar oportunidades de economia e otimizar o uso de energia.
+5. Habilidades e Competências a serem Desenvolvidas
+Ao participar do Projeto Integrador, os alunos terão a oportunidade de desenvolver uma ampla gama de habilidades e competências, incluindo:
+
+Pensamento Crítico e Resolução de Problemas: Analisar problemas complexos e propor soluções inovadoras.
+Trabalho em Equipe e Comunicação: Colaborar com colegas de diferentes áreas e comunicar ideias de forma clara e eficaz.
+Gerenciamento de Projetos: Planejar, executar e monitorar projetos, cumprindo prazos e metas.
+Aprendizado Contínuo: Buscar constantemente novos conhecimentos e habilidades para se manter atualizado com as últimas tendências tecnológicas.
+Ética e Responsabilidade Social: Considerar os impactos éticos e sociais de suas soluções e agir de forma responsável e sustentável.
+6. Considerações Finais
+A participação das disciplinas de Programação Multiplataforma e Business Intelligence e Big Data nos Projetos Integradores é uma oportunidade única para os alunos aplicarem seus conhecimentos em projetos reais, desenvolvendo habilidades e competências valiosas para o mercado de trabalho. Ao combinar as duas áreas, é possível criar soluções inovadoras e impactantes, que utilizam dados para fornecer funcionalidades personalizadas e adaptativas.</t></si><si><t>Andre Luis Orlandi Fávaro</t></si><si><t>Modelagem de Padrões de Projeto</t></si><si><t>De acordo com a regra de negócio abordada no projeto dos alunos, a disciplina vai permitir que seja selecionado qual o melhor padrão de projeto que pode ser utilizado. Desta forma, os alunos conseguem aplicar o conteúdo da disciplina de uma forma prática e eficiente, podendo comparar o uso de padrões em seus projetos e como estes podem contribuir para tal.</t></si></sst>
