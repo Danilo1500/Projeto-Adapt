@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth, useOrganizationList } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -28,9 +28,20 @@ const CreateCompanyCard = () => {
   const isDark = theme === "dark";
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
+  const [pendingSync, setPendingSync] = useState(null);
   const { isLoaded, createOrganization, setActive } = useOrganizationList();
   const { getToken } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    requestWithAuth(getToken, (headers) => api.get("/api/company/sync/pending", { headers }))
+      .then(({ data }) => {
+        if (active && data.pending?.payload) setPendingSync(data.pending.payload);
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [getToken]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -45,6 +56,29 @@ const CreateCompanyCard = () => {
       .replace(/\s+/g, "-")
       .slice(0, 80);
 
+  const sendSyncRequest = async (payload) => requestWithAuth(
+    getToken,
+    (headers) => api.post("/api/company/sync", payload, { headers })
+  );
+
+  const finishSync = async (payload) => {
+    const { data } = await sendSyncRequest(payload);
+    if (data.syncStatus === "pending") {
+      setPendingSync(payload);
+      toast.loading(data.message || "Sincronização recebida; aguardando confirmação do banco.", { duration: 8000 });
+      return false;
+    }
+    if (!data.success || !data.company) {
+      setPendingSync(payload);
+      toast.error(data.message || "A sincronização ainda não foi confirmada.");
+      return false;
+    }
+    setPendingSync(null);
+    toast.success("Empresa criada e salva com sucesso.");
+    navigate("/company");
+    return true;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!form.name.trim()) {
@@ -57,6 +91,7 @@ const CreateCompanyCard = () => {
     }
 
     setLoading(true);
+    let syncPayload = null;
     try {
       const organization = await createOrganization({
         name: form.name.trim(),
@@ -78,21 +113,28 @@ const CreateCompanyCard = () => {
         frameworks: normalizeTags(form.frameworks),
         certifications: [],
       };
-
-      const { data } = await requestWithAuth(
-        getToken,
-        (headers) => api.post("/api/company/sync", payload, { headers })
-      );
-
-      if (!data.success) {
-        toast.error(data.message || "Erro ao sincronizar empresa.");
-        return;
-      }
-
-      toast.success("Empresa criada e salva com sucesso.");
-      navigate("/company");
+      syncPayload = payload;
+      setPendingSync(payload);
+      await finishSync(payload);
     } catch (error) {
-      toast.error(error?.errors?.[0]?.message || error.message || "Erro ao criar empresa.");
+      if (syncPayload) {
+        setPendingSync(syncPayload);
+        toast.error("A sincronização não foi confirmada. Use a opção de tentar novamente antes de criar outra organização.");
+      } else {
+        toast.error(error?.errors?.[0]?.message || error.message || "Erro ao criar empresa.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const retrySync = async () => {
+    if (!pendingSync) return;
+    setLoading(true);
+    try {
+      await finishSync(pendingSync);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message || "A sincronização continua pendente.");
     } finally {
       setLoading(false);
     }
@@ -116,6 +158,15 @@ const CreateCompanyCard = () => {
       <p className={`mt-2 text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>
         A organizaÃ§Ã£o Ã© criada no Clerk e sincronizada no banco via Inngest.
       </p>
+
+      {pendingSync && (
+        <div className={`mt-5 rounded-lg border p-4 ${isDark ? "border-amber-700 bg-amber-950/40 text-amber-100" : "border-amber-200 bg-amber-50 text-amber-900"}`} role="status" aria-live="polite">
+          <p className="text-sm font-medium">A organização do Clerk já foi criada; o salvamento no ADAPT ainda está pendente.</p>
+          <button type="button" onClick={() => void retrySync()} disabled={loading} className="mt-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">
+            {loading ? "Tentando sincronizar…" : "Tentar sincronizar novamente"}
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
@@ -212,12 +263,12 @@ const CreateCompanyCard = () => {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || Boolean(pendingSync)}
           className={`w-full rounded-lg px-4 py-3 text-sm font-medium text-white transition ${
             loading ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"
           }`}
         >
-          {loading ? "Criando empresa..." : "Criar empresa"}
+          {loading ? "Criando empresa..." : pendingSync ? "Sincronização pendente" : "Criar empresa"}
         </button>
       </form>
     </section>

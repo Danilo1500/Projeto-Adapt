@@ -2,6 +2,7 @@ import Job from "../models/Job.js";
 import Company from "../models/Company.js";
 import mongoose from "mongoose";
 import { analyzeJobMatch, MATCHING_CRITERIA, rankJobsByProfile } from "../services/aiJobMatcher.js";
+import { hasCompanyPermission } from "../services/companyAccess.js";
 
 const FIELD_LIMITS = { title: 160, location: 160, contractType: 80, experienceLevel: 80, description: 12000 };
 const normalizeText = (value) => typeof value === "string" ? value.trim() : "";
@@ -78,7 +79,32 @@ const sendValidationError = (res, errors) => res.status(400).json({
     errors,
 });
 
-const getOwnedCompany = (userId) => Company.findOne({ ownerId: userId }).sort({ createdAt: 1 });
+const getManageableCompanies = async (userId) => {
+    const candidates = await Company.find({ $or: [{ ownerId: userId }, { members: String(userId) }, { "members.userId": String(userId) }] }).sort({ createdAt: 1 });
+    return candidates.filter((company) => hasCompanyPermission(company, userId, "manageJobs"));
+};
+
+const selectJobCompany = async (userId, requestedCompanyId = "") => {
+    const companies = await getManageableCompanies(userId);
+    if (requestedCompanyId) {
+        const selected = companies.find((company) => String(company._id) === String(requestedCompanyId));
+        return selected ? { company: selected } : { error: "Você não tem permissão para gerenciar vagas nesta empresa.", status: 403 };
+    }
+    if (companies.length > 1) return { error: "Selecione uma empresa para gerenciar as vagas.", status: 409, code: "COMPANY_SELECTION_REQUIRED" };
+    if (!companies.length) return { error: "Cadastre uma empresa ou solicite acesso de recrutador antes de criar vagas.", status: 403 };
+    return { company: companies[0] };
+};
+
+const getCompanyForExistingJob = async (job, userId) => {
+    if (job.companyId) {
+        if (!mongoose.isValidObjectId(job.companyId)) return null;
+        const company = await Company.findById(job.companyId);
+        return company && hasCompanyPermission(company, userId, "manageJobs") ? company : null;
+    }
+    if (String(job.user) !== String(userId)) return null;
+    const ownedCompanies = await Company.find({ ownerId: userId }).sort({ createdAt: 1 }).limit(2);
+    return ownedCompanies.length === 1 ? ownedCompanies[0] : null;
+};
 
 const REMOTIVE_API_URL = "https://remotive.com/api/remote-jobs";
 const REMOTIVE_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -157,8 +183,9 @@ const fetchRemotiveJobs = async (searchText = "", limit = 12) => {
 export const createJob = async (req, res) => {
     try {
         const { userId } = req.auth();
-        const company = await getOwnedCompany(userId);
-        if (!company) return res.status(403).json({ success: false, message: "Cadastre uma empresa antes de criar vagas." });
+        const selection = await selectJobCompany(userId, req.body.companyId);
+        if (!selection.company) return res.status(selection.status).json({ success: false, code: selection.code, message: selection.error });
+        const { company } = selection;
         const { job, errors } = validateAndNormalizeJob(req.body, { allowDraft: true, companyName: company.name });
         if (Object.keys(errors).length) return sendValidationError(res, errors);
         const created = await Job.create({ ...job, user: userId, companyId: company._id });
@@ -177,7 +204,14 @@ export const createJob = async (req, res) => {
 export const getMyJobs = async (req, res) => {
     try {
         const { userId } = req.auth();
-        const jobs = await Job.find({ user: userId }).sort({ createdAt: -1 });
+        const companies = await getManageableCompanies(userId);
+        const companyIds = companies.map((company) => company._id);
+        const jobs = await Job.find({
+            $or: [
+                ...(companyIds.length ? [{ companyId: { $in: companyIds } }] : []),
+                { user: userId, $or: [{ companyId: { $exists: false } }, { companyId: null }] },
+            ],
+        }).sort({ createdAt: -1 });
         return res.json({ success: true, jobs });
     } catch (error) {
         console.error(error);
@@ -191,7 +225,11 @@ export const deleteJob = async (req, res) => {
         const { userId } = req.auth();
         const { jobId } = req.body || {};
         if (!mongoose.isValidObjectId(jobId)) return res.status(400).json({ success: false, message: "Identificador de vaga inválido." });
-        const deleted = await Job.findOneAndDelete({ _id: jobId, user: userId });
+        const job = await Job.findById(jobId);
+        if (!job) return res.status(404).json({ success: false, message: "Vaga nao encontrada." });
+        const company = await getCompanyForExistingJob(job, userId);
+        if (!company) return res.status(403).json({ success: false, message: "Sem permissao para excluir esta vaga." });
+        const deleted = await Job.findOneAndDelete({ _id: jobId });
         if (!deleted) return res.status(404).json({ success: false, message: "Vaga não encontrada ou sem permissão." });
         return res.json({ success: true, message: "Vaga excluída com sucesso." });
     } catch (error) {
@@ -206,9 +244,9 @@ export const updateJob = async (req, res) => {
         const { userId } = req.auth();
         const { jobId } = req.body || {};
         if (!mongoose.isValidObjectId(jobId)) return res.status(400).json({ success: false, message: "Identificador de vaga inválido." });
-        const job = await Job.findOne({ _id: jobId, user: userId });
+        const job = await Job.findById(jobId);
         if (!job) return res.status(404).json({ success: false, message: "Vaga não encontrada ou sem permissão." });
-        const company = job.companyId ? await Company.findOne({ _id: job.companyId, ownerId: userId }) : await getOwnedCompany(userId);
+        const company = await getCompanyForExistingJob(job, userId);
         if (!company) return res.status(403).json({ success: false, message: "Você não tem autorização para gerenciar esta empresa." });
         const { job: normalizedJob, errors } = validateAndNormalizeJob(req.body, { allowDraft: true, companyName: company.name, fallbackStatus: job.status });
         if (Object.keys(errors).length) return sendValidationError(res, errors);

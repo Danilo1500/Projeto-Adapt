@@ -26,9 +26,13 @@ const companySchema = new mongoose.Schema(
     technologies: [{ type: String, trim: true }],
     frameworks: [{ type: String, trim: true }],
     certifications: [certificationSchema],
-    members: [{ type: String, ref: "User" }],
+    lastSyncOperationId: { type: String, default: "", select: false },
+    lastSyncRequestedAt: { type: Date, default: null, select: false },
+    // Mixed during the migration window: legacy string IDs and structured
+    // { userId, role, status, joinedAt } memberships coexist safely.
+    members: { type: [mongoose.Schema.Types.Mixed], default: [] },
   },
-  { timestamps: true, minimize: false }
+  { timestamps: true, minimize: false, optimisticConcurrency: true }
 );
 
 const Company = mongoose.model("Company", companySchema);

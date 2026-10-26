@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true },
   full_name: { type: String, required: true },
   username: { type: String, unique: true },
+  // Atomic claim protects new company creation from parallel sync requests.
+  // Existing companies are reconciled against this field by the read-only audit.
+  companyOrgClaim: { type: String, default: "", select: false },
+  pendingCompanySync: { type: mongoose.Schema.Types.Mixed, default: null, select: false },
   bio: { type: String, default: 'Hey there! I am using Adapt' },
   profile_picture: { type: String, default: '' },
   cover_photo: { type: String, default: '' },

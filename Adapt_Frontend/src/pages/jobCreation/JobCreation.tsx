@@ -14,6 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 
 export interface JobData {
   id?: string;
+  companyId?: string;
   title: string;
   company: string;
   location: string;
@@ -42,6 +43,8 @@ export default function JobCreation() {
   const submittingRef = useRef(false);
   const [companyLoading, setCompanyLoading] = useState(true);
   const [companyName, setCompanyName] = useState('');
+  const [manageableCompanies, setManageableCompanies] = useState<Array<{ _id: string; name: string }>>([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const { getToken } = useAuth();
@@ -51,6 +54,7 @@ export default function JobCreation() {
   const [formData, setFormData] = useState<JobData>({
     title: '',
     company: '',
+    companyId: '',
     location: '',
     contractType: 'Tempo Integral',
     experienceLevel: 'Júnior (0-2 anos)',
@@ -102,12 +106,23 @@ export default function JobCreation() {
       .then(({ data }) => {
         if (data.success && data.company?.name) {
           setCompanyName(data.company.name);
-          setFormData((current) => ({ ...current, company: data.company.name }));
+          setSelectedCompanyId(data.company._id);
+          setManageableCompanies([{ _id: data.company._id, name: data.company.name }]);
+          setFormData((current) => ({ ...current, company: data.company.name, companyId: data.company._id }));
         } else {
           toast.error('Cadastre uma empresa antes de criar vagas.');
         }
       })
-      .catch(() => toast.error('Não foi possível carregar os dados da empresa.'))
+      .catch((error: any) => {
+        const choices = error.response?.data?.companies;
+        if (Array.isArray(choices) && choices.length) {
+          setManageableCompanies(choices);
+          setSelectedCompanyId('');
+          setCompanyName('');
+          return;
+        }
+        toast.error(error.response?.data?.message || 'Não foi possível carregar os dados da empresa.');
+      })
       .finally(() => setCompanyLoading(false));
   }, []);
 
@@ -141,6 +156,7 @@ export default function JobCreation() {
     setFormData({
       title: job.title || '',
       company: job.company || '',
+      companyId: job.companyId || '',
       location: job.location || '',
       contractType: job.contractType || 'Tempo Integral',
       experienceLevel: job.experienceLevel || 'Júnior (0-2 anos)',
@@ -157,6 +173,7 @@ export default function JobCreation() {
       status: job.status,
       id: job.id,
     });
+    setSelectedCompanyId(job.companyId || '');
     setEditingJobId(job.id || null);
     setCurrentStep(1);
     setView('create');
@@ -248,6 +265,7 @@ export default function JobCreation() {
     setFormData({
       title: '',
       company: companyName,
+      companyId: selectedCompanyId,
       location: '',
       contractType: 'Tempo Integral',
       experienceLevel: 'Júnior (0-2 anos)',
@@ -262,6 +280,28 @@ export default function JobCreation() {
       desiredRequirements: [''],
       benefits: [''],
     });
+  };
+
+  const handleCompanySelection = async (companyId: string) => {
+    setSelectedCompanyId(companyId);
+    const selected = manageableCompanies.find((company) => company._id === companyId);
+    const name = selected?.name || '';
+    setCompanyName(name);
+    setFormData((current) => ({ ...current, company: name, companyId }));
+    try {
+      const { data } = await requestWithAuth(getToken, (headers: Record<string, string>) =>
+        api.get(`/api/company/my?companyId=${encodeURIComponent(companyId)}`, { headers })
+      );
+      if (data.success && data.company) {
+        setCompanyName(data.company.name);
+        setFormData((current) => ({ ...current, company: data.company.name, companyId: data.company._id }));
+      }
+    } catch (error: any) {
+      setSelectedCompanyId('');
+      setCompanyName('');
+      setFormData((current) => ({ ...current, company: '', companyId: '' }));
+      toast.error(error.response?.data?.message || 'Não foi possível selecionar a empresa.');
+    }
   };
 
   const handleDeleteJob = async (id: string) => {
@@ -327,13 +367,27 @@ export default function JobCreation() {
                 variant="outline"
                 className="border-gray-200 text-gray-700 hover:bg-gray-50"
                 onClick={handleSaveDraft}
-                disabled={isSubmitting || companyLoading || !companyName}
+                disabled={isSubmitting || companyLoading || !companyName || !selectedCompanyId}
               >
                 <Save className="w-4 h-4 mr-2" />
                 Salvar rascunho
               </Button>
             </div>
           </div>
+          {manageableCompanies.length > 1 && (
+            <label className="mt-4 block text-sm font-medium">
+              Empresa responsável pela vaga
+              <select
+                className={`mt-1 w-full rounded-lg border px-3 py-2 ${isDark ? 'border-slate-700 bg-slate-800 text-slate-100' : 'border-gray-300 bg-white text-gray-900'}`}
+                value={selectedCompanyId}
+                onChange={(event) => void handleCompanySelection(event.target.value)}
+                disabled={companyLoading || isSubmitting}
+              >
+                <option value="">Selecione uma empresa</option>
+                {manageableCompanies.map((company) => <option key={company._id} value={company._id}>{company.name}</option>)}
+              </select>
+            </label>
+          )}
         </div>
 
         {/* Progress Steps */}

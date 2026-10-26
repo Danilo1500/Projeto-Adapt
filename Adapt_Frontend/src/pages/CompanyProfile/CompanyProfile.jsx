@@ -8,6 +8,7 @@ import Loading from "../components/LoadingWhite";
 import UserProfileInfo from "../components/UserProfileInfo";
 import PostCard from "../components/PostCard";
 import CompanyProfileModal from "../components/CompanyProfileModal";
+import CompanyMemberManagement from "./CompanyMemberManagement";
 import api from "../../api/axios";
 import { requestWithAuth } from "../../utils/authRequest";
 
@@ -22,6 +23,7 @@ const CompanyProfile = () => {
   const { getToken } = useAuth();
 
   const [company, setCompany] = useState(null);
+  const [access, setAccess] = useState({ role: null, permissions: [] });
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("posts");
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,7 @@ const CompanyProfile = () => {
       }
 
       setCompany(mapCompanyToProfile(data.company));
+      setAccess(data.access || { role: data.isOwner ? "owner" : null, permissions: [] });
       setPosts([]);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message || "Erro ao carregar empresa.");
@@ -91,7 +94,8 @@ const CompanyProfile = () => {
     };
   }, []);
 
-  const canEdit = !companyId;
+  const canEdit = access.permissions?.includes("manageCompany") || (!companyId && access.role === "owner");
+  const canManageMembers = access.permissions?.includes("manageMembers");
 
   if (loading) return <Loading />;
 
@@ -123,6 +127,14 @@ const CompanyProfile = () => {
             profileId={companyId}
             setShowEdit={setShowEdit}
           />
+
+          {canEdit && (
+            <div className="flex justify-end px-4">
+              <button type="button" onClick={() => setShowEdit(true)} className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50">
+                Editar perfil da empresa
+              </button>
+            </div>
+          )}
 
           <div className="p-4 text-center">
             <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow">
@@ -186,7 +198,8 @@ const CompanyProfile = () => {
           )}
 
           {activeTab === "team" && (
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {team.length > 0 ? (
                 team.map((member, index) => (
                   <div
@@ -205,6 +218,8 @@ const CompanyProfile = () => {
               ) : (
                 <p className="text-sm text-gray-500">Sem membros para exibir.</p>
               )}
+            </div>
+            {canManageMembers && <CompanyMemberManagement company={company} access={access} onChanged={fetchCompany} />}
             </div>
           )}
 

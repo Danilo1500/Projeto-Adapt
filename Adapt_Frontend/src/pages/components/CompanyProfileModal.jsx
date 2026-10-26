@@ -45,6 +45,7 @@ const CompanyProfileModal = ({ company, setShowEdit, onSaved }) => {
     setLoading(true);
     try {
       const payload = new FormData();
+      if (company?._id) payload.append("companyId", company._id);
       payload.append("name", form.name.trim());
       payload.append("slug", form.slug.trim());
       payload.append("industry", form.industry.trim());

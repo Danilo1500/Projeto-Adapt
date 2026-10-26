@@ -135,19 +135,22 @@ export const updateUserData = async (req, res) => {
 export const discoverUsers = async (req, res) => {
     try {
         const { userId } = req.auth()
-        const { input } = req.body;
+        const input = typeof req.body?.input === "string" ? req.body.input.trim().slice(0, 100) : "";
+        if (!input) return res.json({ success: true, users: [] });
+        const safeInput = input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
         const allUsers = await User.find(
             {
                 $or: [
-                    { username: new RegExp(input, 'i') },
-                    { email: new RegExp(input, 'i') },
-                    { full_name: new RegExp(input, 'i') },
-                    { location: new RegExp(input, 'i') },
-                    { bio: new RegExp(input, "i") },
+                    { username: new RegExp(safeInput, 'i') },
+                    { email: new RegExp(safeInput, 'i') },
+                    { full_name: new RegExp(safeInput, 'i') },
+                    { location: new RegExp(safeInput, 'i') },
+                    { bio: new RegExp(safeInput, "i") },
                 ]
-            }
-        )
+            },
+            "_id username full_name profile_picture cover_photo location bio followers createdAt"
+        ).limit(50)
         const filteredUsers = allUsers.filter(user => user._id !== userId);
 
         res.json({ success: true, users: filteredUsers })
