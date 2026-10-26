@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { assets } from '../assets/assets'
 import { useNavigate, Link } from 'react-router-dom';
 import MenuItems from './MenuItems';
-import { CirclePlus, LogOut, Briefcase, Building2, Settings, Sun, Moon, Languages } from 'lucide-react';
+import { CirclePlus, LogOut, Briefcase, Building2, Settings, Sun, Moon, Languages, MessageSquare, Send, X } from 'lucide-react';
 import { UserButton, useClerk } from '@clerk/clerk-react';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../context/ThemeContext';
@@ -15,11 +15,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const { signOut } = useClerk();
   const [configOpen, setConfigOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   const isEnglish = language === 'en';
 
   const isDark = theme === 'dark';
+
+  const handleFeedbackSubmit = (event) => {
+    event.preventDefault();
+
+    const subject = encodeURIComponent(isEnglish ? 'App feedback' : 'Feedback do aplicativo');
+    const body = encodeURIComponent(feedbackMessage.trim());
+    window.location.href = `mailto:resendedanielcouto@gmail.com?subject=${subject}&body=${body}`;
+    setFeedbackOpen(false);
+    setFeedbackMessage('');
+  };
 
   return (
     <div
@@ -101,6 +113,73 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           document.body
         )}
 
+      {feedbackOpen &&
+        createPortal(
+          <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+            <button
+              type='button'
+              className='absolute inset-0 bg-black/40'
+              onClick={() => setFeedbackOpen(false)}
+              aria-label={isEnglish ? 'Close feedback form' : 'Fechar formulário de feedback'}
+            />
+            <form
+              onSubmit={handleFeedbackSubmit}
+              role='dialog'
+              aria-modal='true'
+              aria-labelledby='feedback-title'
+              className={`relative w-full max-w-md rounded-xl border p-5 shadow-xl ${
+                isDark ? 'border-slate-700 bg-slate-800 text-slate-100' : 'border-gray-200 bg-white text-gray-900'
+              }`}
+            >
+              <div className='mb-4 flex items-center justify-between'>
+                <h2 id='feedback-title' className='text-lg font-semibold'>
+                  {isEnglish ? 'Send feedback' : 'Enviar feedback'}
+                </h2>
+                <button
+                  type='button'
+                  onClick={() => setFeedbackOpen(false)}
+                  className={`rounded-md p-1 transition ${
+                    isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+                  aria-label={isEnglish ? 'Close' : 'Fechar'}
+                >
+                  <X className='h-5 w-5' />
+                </button>
+              </div>
+              <label htmlFor='feedback-message' className='mb-2 block text-sm font-medium'>
+                {isEnglish ? 'Tell us what you think' : 'Conte para nós o que você achou'}
+              </label>
+              <textarea
+                id='feedback-message'
+                required
+                value={feedbackMessage}
+                onChange={(event) => setFeedbackMessage(event.target.value)}
+                rows={5}
+                className={`w-full resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  isDark
+                    ? 'border-slate-600 bg-slate-900 text-slate-100 placeholder:text-slate-500'
+                    : 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400'
+                }`}
+                placeholder={isEnglish ? 'Write your feedback here...' : 'Escreva seu feedback aqui...'}
+              />
+              <p className={`mt-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                {isEnglish
+                  ? 'Your email app will open to send your message.'
+                  : 'Seu aplicativo de e-mail será aberto para enviar sua mensagem.'}
+              </p>
+              <button
+                type='submit'
+                disabled={!feedbackMessage.trim()}
+                className='mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                <Send className='h-4 w-4' />
+                {isEnglish ? 'Continue to email' : 'Continuar para o e-mail'}
+              </button>
+            </form>
+          </div>,
+          document.body
+        )}
+
       {/* --- Topo da Sidebar --- */}
       <div className='w-full'>
         <img
@@ -164,6 +243,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             </div>
           )}
         </div>
+        <div className='mx-6 mt-3'>
+          <button
+            type='button'
+            onClick={() => {
+              setFeedbackMessage('');
+              setFeedbackOpen(true);
+              setSidebarOpen(false);
+            }}
+            className={`w-full flex items-center justify-center gap-2 rounded-lg border py-2.5 transition ${
+              isDark
+                ? 'border-slate-700 text-slate-200 hover:bg-slate-800'
+                : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <MessageSquare className='h-5 w-5' />
+            {isEnglish ? 'Feedback' : 'Feedback'}
+          </button>
+        </div>
       </div>
 
       {/* --- Rodapï¿½ da Sidebar (usuï¿½rio + logout) --- */}
@@ -185,4 +282,3 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 }
 
 export default Sidebar;
-
