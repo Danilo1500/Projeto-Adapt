@@ -340,9 +340,9 @@ const Discover = () => {
         isDark ? "bg-slate-900" : "bg-gradient-to-b from-slate-50 to-white"
       }`}
     >
-      <div className="mx-auto max-w-6xl p-6 pb-6">
+      <div className="mx-auto max-w-6xl p-3 pb-6 sm:p-6">
         <div className="mb-8">
-          <h1 className={`mb-2 text-3xl font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+          <h1 className={`mb-2 text-2xl font-bold sm:text-3xl ${isDark ? "text-slate-100" : "text-slate-900"}`}>
             Discover
           </h1>
           <p className={isDark ? "text-slate-300" : "text-slate-600"}>
@@ -350,12 +350,12 @@ const Discover = () => {
           </p>
         </div>
 
-        <div className="mb-6 flex gap-3">
+        <div className="mb-6 flex gap-1 sm:gap-3">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 cursor-pointer rounded-xl px-4 py-2.5 transition-all duration-200 ${
+              className={`min-w-0 flex-1 cursor-pointer rounded-xl px-2 py-2 text-sm transition-all duration-200 sm:px-4 sm:py-2.5 sm:text-base ${
                 activeTab === tab
                   ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200"
                   : isDark
@@ -557,7 +557,7 @@ const Discover = () => {
                     Esta demonstracao inclui {jobSources.external} vagas da Remotive para enriquecer a busca.
                   </div>
                 )}
-                <div className="flex flex-wrap gap-6">
+                <div className="flex flex-col gap-4 sm:gap-6">
                   {filteredJobs && filteredJobs.length > 0 ? (
                     filteredJobs.map((job) => (
                       <DiscoverJobCard

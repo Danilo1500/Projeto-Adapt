@@ -10,6 +10,7 @@ import { useAuth } from '@clerk/clerk-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { requestWithAuth } from '../../utils/authRequest';
+import { useTheme } from '../../context/ThemeContext';
 
 export interface JobData {
   id?: string;
@@ -44,6 +45,8 @@ export default function JobCreation() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const { getToken } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const [formData, setFormData] = useState<JobData>({
     title: '',
@@ -297,21 +300,21 @@ export default function JobCreation() {
   const progressPercentage = (currentStep / 3) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 dark:bg-slate-950">
+    <div className={`min-h-screen p-3 sm:p-6 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-gray-50 text-gray-900'}`}>
       {/* Header */}
       <div className="max-w-5xl mx-auto">
-        <div className="rounded-2xl bg-white p-6 shadow dark:bg-slate-900">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-indigo-50 rounded-full w-12 h-12 flex items-center justify-center">
+        <div className={`rounded-2xl p-4 shadow sm:p-6 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+          <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 sm:h-12 sm:w-12">
                 <Briefcase className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h1 className="text-gray-900 dark:text-slate-100">Criar nova vaga</h1>
-                <p className="text-gray-500 text-sm dark:text-slate-300">Encontre os melhores talentos para sua empresa</p>
+                <h1 className={isDark ? 'text-slate-100' : 'text-gray-900'}>Criar nova vaga</h1>
+                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Encontre os melhores talentos para sua empresa</p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
               <Button
                 variant="ghost"
                 className="text-gray-600 hover:bg-gray-100"
@@ -334,11 +337,11 @@ export default function JobCreation() {
         </div>
 
         {/* Progress Steps */}
-        <div className="mt-6 rounded-2xl bg-white p-6 shadow dark:bg-slate-900">
-          <div className="flex items-center justify-between mb-4">
+        <div className={`mt-4 rounded-2xl p-4 shadow sm:mt-6 sm:p-6 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-y-3">
             {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center flex-1">
-                <div className="flex items-center gap-3">
+                <div key={step.number} className="flex min-w-[30%] flex-1 items-center sm:min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div
                     className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
                       currentStep >= step.number
@@ -348,18 +351,18 @@ export default function JobCreation() {
                   >
                     {step.number}
                   </div>
-                  <span
+                    <span
                     className={`${
                       currentStep >= step.number
                         ? 'text-indigo-600'
                         : 'text-gray-500'
-                    }`}
+                    } hidden sm:inline`}
                   >
                     {step.title}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="flex-1 mx-4">
+                  <div className="mx-2 hidden flex-1 sm:block sm:mx-4">
                     <div className="h-0.5 bg-gray-200 relative">
                       <div
                         className="h-full bg-indigo-600 transition-all duration-300"
@@ -377,7 +380,7 @@ export default function JobCreation() {
         </div>
 
         {/* Form Content */}
-        <div className="mt-6 rounded-2xl bg-white p-6 shadow dark:bg-slate-900">
+        <div className={`mt-4 rounded-2xl p-4 shadow sm:mt-6 sm:p-6 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
           {Object.keys(fieldErrors).length > 0 && <div className="mb-5 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert" aria-live="assertive">
             <p className="font-semibold">Revise os campos abaixo:</p>
             <ul className="mt-2 list-inside list-disc">{Object.entries(fieldErrors).map(([field, message]) => {

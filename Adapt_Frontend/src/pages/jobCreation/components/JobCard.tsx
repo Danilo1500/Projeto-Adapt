@@ -1,6 +1,7 @@
 ﻿import { Building2, Clock3, ExternalLink, MapPin, Target } from "lucide-react";
 import { JobData } from "../JobCreation";
 import { useLanguage } from "../../../context/Language.js";
+import { useTheme } from "../../../context/ThemeContext";
 
 type JobCardData = JobData & {
   externalUrl?: string;
@@ -23,6 +24,8 @@ function formatDate(value: string | Date | undefined, locale: string) {
 
 export default function JobCard({ job, onApply, onDelete }: Props) {
   const { locale } = useLanguage();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const salary =
     job.salary
       ? job.salary
@@ -44,10 +47,10 @@ export default function JobCard({ job, onApply, onDelete }: Props) {
   const canApply = Boolean(onApply || job.externalUrl);
 
   return (
-    <article className="mx-auto max-w-4xl rounded-xl border border-gray-200 bg-white p-6 text-gray-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-      <div className="flex items-start justify-between gap-4">
+    <article className={`mx-auto w-full min-w-0 max-w-4xl rounded-xl border p-4 shadow-sm sm:p-6 ${isDark ? "border-slate-700 bg-slate-900 text-slate-100" : "border-gray-200 bg-white text-gray-900"}`}>
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <h3 data-i18n-ignore className="truncate text-lg font-semibold">{job.title}</h3>
             {(job.workMode === 'remote' || job.isRemote) && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md">Remoto</span>}
             {job.workMode === 'hybrid' && <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-md">Híbrido</span>}
@@ -80,7 +83,7 @@ export default function JobCard({ job, onApply, onDelete }: Props) {
 
           {job.description && <p data-i18n-ignore className="mt-4 text-slate-700 dark:text-slate-200">{job.description}</p>}
 
-          <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-4 flex flex-wrap items-start justify-between gap-3 text-xs text-slate-500">
             <div className="flex flex-wrap items-center gap-3">
               <span>Publicado em {formatDate(job.createdAt, locale)}</span>
               {job.sourceLabel && (
@@ -93,7 +96,7 @@ export default function JobCard({ job, onApply, onDelete }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-3">
+        <div className="flex flex-row items-center gap-2 sm:flex-col sm:items-end sm:gap-3">
           {canApply && (
             <button
               onClick={handleApply}
