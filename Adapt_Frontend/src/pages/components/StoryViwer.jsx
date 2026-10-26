@@ -54,7 +54,7 @@ const StoryViwer = ({viewStory, setViewStory}) => {
             
             case 'text':
                 return (
-                    <div className='w-full h-full flex items-center justify-center p-8 text-white text-2xl text-center'>
+                    <div data-i18n-ignore className='w-full h-full flex items-center justify-center p-8 text-white text-2xl text-center'>
                         {viewStory.content}
                     </div>
                 );
@@ -77,7 +77,7 @@ const StoryViwer = ({viewStory, setViewStory}) => {
         <div className='absolute top-4 left-4 flex items-center space-x-3 p-2 px-4 sm:p-4 sm:px-8 backdrop-blur-2xl rounded bg-black/50'>
             <img src={viewStory.user?.profile_picture} alt="" className='w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-white' />
             <div className='text-white font-medium flex items-center gap-1.5'>
-                <span>{viewStory.user?.full_name}</span>
+                <span data-i18n-ignore>{viewStory.user?.full_name}</span>
                 <BadgeCheck size={18}/>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Briefcase, ArrowLeft, Save } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Progress } from './components/ui/progress';
@@ -22,9 +22,11 @@ export interface JobData {
   salaryMax: string;
   currency: string;
   isRemote: boolean;
+  workMode: 'onsite' | 'hybrid' | 'remote';
   isUrgent: boolean;
   description: string;
   requirements: string[];
+  desiredRequirements: string[];
   benefits: string[];
   status?: 'draft' | 'published';
   createdAt?: Date;
@@ -35,6 +37,11 @@ export default function JobCreation() {
   const [view, setView] = useState<'list' | 'create'>('list');
   const [jobs, setJobs] = useState<JobData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
+  const [companyLoading, setCompanyLoading] = useState(true);
+  const [companyName, setCompanyName] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const { getToken } = useAuth();
 
@@ -43,21 +50,23 @@ export default function JobCreation() {
     company: '',
     location: '',
     contractType: 'Tempo Integral',
-    experienceLevel: 'J�nior (0-2 anos)',
+    experienceLevel: 'Júnior (0-2 anos)',
     salaryMin: '',
     salaryMax: '',
     currency: 'R$',
     isRemote: false,
+    workMode: 'onsite',
     isUrgent: false,
     description: '',
     requirements: [''],
+    desiredRequirements: [''],
     benefits: [''],
   });
 
   const steps = [
-    { number: 1, title: 'Informa��es b�sicas' },
+    { number: 1, title: 'Informações básicas' },
     { number: 2, title: 'Detalhes da vaga' },
-    { number: 3, title: 'Revis�o e publica��o' },
+    { number: 3, title: 'Revisão e publicação' },
   ];
 
   const fetchJobs = async () => {
@@ -86,6 +95,17 @@ export default function JobCreation() {
 
   useEffect(() => {
     fetchJobs();
+    requestWithAuth(getToken, (headers: Record<string, string>) => api.get('/api/company/my', { headers }))
+      .then(({ data }) => {
+        if (data.success && data.company?.name) {
+          setCompanyName(data.company.name);
+          setFormData((current) => ({ ...current, company: data.company.name }));
+        } else {
+          toast.error('Cadastre uma empresa antes de criar vagas.');
+        }
+      })
+      .catch(() => toast.error('Não foi possível carregar os dados da empresa.'))
+      .finally(() => setCompanyLoading(false));
   }, []);
 
   const handleNext = () => {
@@ -107,25 +127,29 @@ export default function JobCreation() {
 
   const startNewJob = () => {
     resetForm();
+    setFieldErrors({});
     setEditingJobId(null);
     setCurrentStep(1);
     setView('create');
   };
 
   const startEditJob = (job: JobData) => {
+    setFieldErrors({});
     setFormData({
       title: job.title || '',
       company: job.company || '',
       location: job.location || '',
       contractType: job.contractType || 'Tempo Integral',
-      experienceLevel: job.experienceLevel || 'J�nior (0-2 anos)',
+      experienceLevel: job.experienceLevel || 'Júnior (0-2 anos)',
       salaryMin: job.salaryMin || '',
       salaryMax: job.salaryMax || '',
       currency: job.currency || 'R$',
       isRemote: !!job.isRemote,
+      workMode: job.workMode || (job.isRemote ? 'remote' : 'onsite'),
       isUrgent: !!job.isUrgent,
       description: job.description || '',
       requirements: job.requirements?.length ? job.requirements : [''],
+      desiredRequirements: job.desiredRequirements?.length ? job.desiredRequirements : [''],
       benefits: job.benefits?.length ? job.benefits : [''],
       status: job.status,
       id: job.id,
@@ -136,9 +160,14 @@ export default function JobCreation() {
   };
 
   const handlePublish = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    setFieldErrors({});
     const payload = {
       ...formData,
       requirements: formData.requirements.filter((req) => req.trim()),
+      desiredRequirements: formData.desiredRequirements.filter((req) => req.trim()),
       benefits: formData.benefits.filter((benefit) => benefit.trim()),
       status: 'published',
     };
@@ -152,15 +181,6 @@ export default function JobCreation() {
       );
       if (data.success) {
         toast.success(data.message);
-        if (!editingJobId) {
-          const newJob: JobData = {
-            ...formData,
-            id: `temp-${Date.now()}`,
-            createdAt: new Date(),
-            status: 'published',
-          };
-          setJobs((prev) => [newJob, ...prev]);
-        }
         setView('list');
         setCurrentStep(1);
         resetForm();
@@ -170,14 +190,25 @@ export default function JobCreation() {
         toast.error(data.message);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      const errors = error.response?.data?.errors || {};
+      setFieldErrors(errors);
+      if (Object.keys(errors).length) setCurrentStep(Object.keys(errors).some((key: string) => ['description', 'requirements', 'desiredRequirements', 'benefits'].includes(key)) ? 2 : 1);
+      toast.error(error.response?.data?.message || error.message || 'Não foi possível publicar a vaga.');
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
   const handleSaveDraft = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    setFieldErrors({});
     const payload = {
       ...formData,
       requirements: formData.requirements.filter((req) => req.trim()),
+      desiredRequirements: formData.desiredRequirements.filter((req) => req.trim()),
       benefits: formData.benefits.filter((benefit) => benefit.trim()),
       status: 'draft',
     };
@@ -200,34 +231,37 @@ export default function JobCreation() {
         toast.error(data.message);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      const errors = error.response?.data?.errors || {};
+      setFieldErrors(errors);
+      if (Object.keys(errors).length) setCurrentStep(Object.keys(errors).some((key: string) => ['description', 'requirements', 'desiredRequirements', 'benefits'].includes(key)) ? 2 : 1);
+      toast.error(error.response?.data?.message || error.message || 'Não foi possível salvar o rascunho.');
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
   const resetForm = () => {
     setFormData({
       title: '',
-      company: '',
+      company: companyName,
       location: '',
       contractType: 'Tempo Integral',
-      experienceLevel: 'J�nior (0-2 anos)',
+      experienceLevel: 'Júnior (0-2 anos)',
       salaryMin: '',
       salaryMax: '',
       currency: 'R$',
       isRemote: false,
+      workMode: 'onsite',
       isUrgent: false,
       description: '',
       requirements: [''],
+      desiredRequirements: [''],
       benefits: [''],
     });
   };
 
   const handleDeleteJob = async (id: string) => {
-    if (id.startsWith('temp-')) {
-      setJobs((prev) => prev.filter((job) => job.id !== id));
-      return;
-    }
-
     try {
       const { data } = await requestWithAuth(
         getToken,
@@ -244,7 +278,7 @@ export default function JobCreation() {
         toast.error(data.message);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
@@ -263,18 +297,18 @@ export default function JobCreation() {
   const progressPercentage = (currentStep / 3) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 dark:bg-slate-950">
       {/* Header */}
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-2xl shadow p-6">
+        <div className="rounded-2xl bg-white p-6 shadow dark:bg-slate-900">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="bg-indigo-50 rounded-full w-12 h-12 flex items-center justify-center">
                 <Briefcase className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h1 className="text-gray-900">Criar nova vaga</h1>
-                <p className="text-gray-500 text-sm">Encontre os melhores talentos para sua empresa</p>
+                <h1 className="text-gray-900 dark:text-slate-100">Criar nova vaga</h1>
+                <p className="text-gray-500 text-sm dark:text-slate-300">Encontre os melhores talentos para sua empresa</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -290,6 +324,7 @@ export default function JobCreation() {
                 variant="outline"
                 className="border-gray-200 text-gray-700 hover:bg-gray-50"
                 onClick={handleSaveDraft}
+                disabled={isSubmitting || companyLoading || !companyName}
               >
                 <Save className="w-4 h-4 mr-2" />
                 Salvar rascunho
@@ -299,7 +334,7 @@ export default function JobCreation() {
         </div>
 
         {/* Progress Steps */}
-        <div className="bg-white rounded-2xl shadow p-6 mt-6">
+        <div className="mt-6 rounded-2xl bg-white p-6 shadow dark:bg-slate-900">
           <div className="flex items-center justify-between mb-4">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center flex-1">
@@ -342,15 +377,22 @@ export default function JobCreation() {
         </div>
 
         {/* Form Content */}
-        <div className="bg-white rounded-2xl shadow p-6 mt-6">
+        <div className="mt-6 rounded-2xl bg-white p-6 shadow dark:bg-slate-900">
+          {Object.keys(fieldErrors).length > 0 && <div className="mb-5 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert" aria-live="assertive">
+            <p className="font-semibold">Revise os campos abaixo:</p>
+            <ul className="mt-2 list-inside list-disc">{Object.entries(fieldErrors).map(([field, message]) => {
+              const labels: Record<string, string> = { salaryMin: 'Salário mínimo', salaryMax: 'Salário máximo', requirements: 'Requisitos obrigatórios', desiredRequirements: 'Requisitos desejáveis', workMode: 'Modalidade de trabalho', title: 'Título', location: 'Localização', contractType: 'Tipo de contrato', experienceLevel: 'Nível de experiência', description: 'Descrição' };
+              return <li key={field}><a className="underline" href={`#${field}`}>{labels[field] || field}</a>: {message}</li>;
+            })}</ul>
+          </div>}
           {currentStep === 1 && (
-            <BasicInfoStep formData={formData} setFormData={setFormData} onNext={handleNext} />
+            <BasicInfoStep formData={formData} setFormData={setFormData} onNext={handleNext} companyLoading={companyLoading} />
           )}
           {currentStep === 2 && (
             <DetailsStep formData={formData} setFormData={setFormData} onNext={handleNext} />
           )}
           {currentStep === 3 && (
-            <ReviewStep formData={formData} onPublish={handlePublish} />
+            <ReviewStep formData={formData} onPublish={handlePublish} isSubmitting={isSubmitting} />
           )}
         </div>
       </div>

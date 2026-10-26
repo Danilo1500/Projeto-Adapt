@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronUp, Search, Sparkles } from "lucide-react";
+import { ChevronUp, Code2, Cpu, Database, Layers3, LockKeyhole, Search, Sparkles, X } from "lucide-react";
 import UserCard from "../components/UserCard";
 import CompanyCard from "../components/CompanyCard";
 import Loading from "../components/LoadingWhite";
@@ -18,7 +18,12 @@ const Discover = () => {
   const [jobs, setJobs] = useState([]);
   const [jobSources, setJobSources] = useState({ internal: 0, external: 0 });
   const [recommendedMode, setRecommendedMode] = useState(false);
-  const [recommendationsUsedAI, setRecommendationsUsedAI] = useState(false);
+  const [recommendationHasMore, setRecommendationHasMore] = useState(false);
+  const [recommendationPage, setRecommendationPage] = useState(1);
+  const [recommendationTruncated, setRecommendationTruncated] = useState(false);
+  const [recommendationLimit, setRecommendationLimit] = useState(500);
+  const [selectedJobCategory, setSelectedJobCategory] = useState("");
+  const [selectedJobTag, setSelectedJobTag] = useState("");
   const [loading, setLoading] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -26,6 +31,45 @@ const Discover = () => {
 
   const tabs = ["vagas", "pessoas", "empresas"];
   const [activeTab, setActiveTab] = useState("pessoas");
+
+  const jobCategories = [
+    {
+      icon: <Code2 className="size-6" />,
+      title: "Desenvolvimento",
+      tags: ["Front-end", "Back-end", "Full stack"],
+      keywords: ["developer", "desenvolvedor", "desenvolvedora", "frontend", "front-end", "backend", "back-end", "full stack", "fullstack", "software", "programador", "react", "node", "java", "python"],
+    },
+    {
+      icon: <Cpu className="size-6" />,
+      title: "Cloud e DevOps",
+      tags: ["AWS", "CI/CD", "Infraestrutura"],
+      keywords: ["cloud", "devops", "aws", "azure", "gcp", "ci/cd", "cicd", "infraestrutura", "infrastructure", "kubernetes", "docker", "sre"],
+    },
+    {
+      icon: <Database className="size-6" />,
+      title: "Dados e IA",
+      tags: ["BI", "Machine learning", "Analytics"],
+      keywords: ["data", "dados", "analytics", "bi", "business intelligence", "machine learning", "ml", "ai", "ia", "scientist", "analyst", "analista", "sql"],
+    },
+    {
+      icon: <LockKeyhole className="size-6" />,
+      title: "Segurança",
+      tags: ["AppSec", "SOC", "Compliance"],
+      keywords: ["segurança", "seguranca", "security", "appsec", "soc", "compliance", "cyber", "cibersegurança", "ciberseguranca", "pentest"],
+    },
+    {
+      icon: <Layers3 className="size-6" />,
+      title: "Produto e UX",
+      tags: ["Product", "Design", "Pesquisa"],
+      keywords: ["product", "produto", "ux", "ui", "design", "designer", "research", "pesquisa", "product manager", "po", "pm"],
+    },
+    {
+      icon: <Sparkles className="size-6" />,
+      title: "Início de carreira",
+      tags: ["Estágio", "Júnior", "Trainee"],
+      keywords: ["estágio", "estagio", "intern", "internship", "júnior", "junior", "trainee", "entry level", "aprendiz"],
+    },
+  ];
 
   const getAuthHeaders = async (refresh = false) => {
     if (!isLoaded || !isSignedIn) {
@@ -89,12 +133,14 @@ const Discover = () => {
     setJobs(mapped);
     setJobSources(data.sources || { internal: 0, external: 0 });
     setRecommendedMode(false);
-    setRecommendationsUsedAI(false);
+    setRecommendationHasMore(false);
+    setRecommendationPage(1);
+    setRecommendationTruncated(false);
   };
 
-  const fetchRecommendedJobs = async () => {
+  const fetchRecommendedJobs = async (page = 1, append = false) => {
     const { data } = await requestWithAuth((headers) =>
-      api.get("/api/job/recommended", { headers })
+      api.get("/api/job/recommended", { params: { page, limit: 10 }, headers })
     );
     if (!data.success) throw new Error(data.message);
     const mapped = (data.jobs || []).map((job) => ({
@@ -102,10 +148,13 @@ const Discover = () => {
       id: job._id || job.id,
       createdAt: job.createdAt ? new Date(job.createdAt) : undefined,
     }));
-    setJobs(mapped);
+    setJobs((current) => append ? [...current, ...mapped] : mapped);
     setJobSources({ internal: 0, external: 0 });
     setRecommendedMode(true);
-    setRecommendationsUsedAI(Boolean(data.usedAI));
+    setRecommendationHasMore(Boolean(data.hasMore));
+    setRecommendationPage(data.page || page);
+    setRecommendationTruncated(Boolean(data.candidatePoolTruncated));
+    setRecommendationLimit(data.candidatePoolLimit || 500);
   };
 
   const handleSearch = async (event) => {
@@ -130,6 +179,44 @@ const Discover = () => {
     try {
       setLoading(true);
       await fetchRecommendedJobs();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnalyzeJob = async (job) => {
+    try {
+      const { data } = await requestWithAuth((headers) => job._id
+        ? api.get(`/api/job/${job._id}/match`, { headers })
+        : api.post("/api/job/analyze", {
+            title: job.title,
+            company: job.company,
+            location: job.location,
+            contractType: job.contractType,
+            experienceLevel: job.experienceLevel,
+            description: job.description,
+            requirements: job.requirements,
+            desiredRequirements: job.desiredRequirements,
+            category: job.category,
+            isRemote: job.isRemote,
+            workMode: job.workMode,
+          }, { headers })
+      );
+      if (!data.success) throw new Error(data.message || "Não foi possível analisar esta vaga.");
+      setJobs((current) => current.map((item) =>
+        (item._id || item.id) === (job._id || job.id) ? { ...item, aiMatch: data.match } : item
+      ));
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message);
+    }
+  };
+
+  const handleMoreRecommendedJobs = async () => {
+    try {
+      setLoading(true);
+      await fetchRecommendedJobs(recommendationPage + 1, true);
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -202,6 +289,50 @@ const Discover = () => {
     });
   };
 
+  const normalizeText = (value) =>
+    String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+  const getJobSearchText = (job) =>
+    normalizeText(
+      [
+        job.title,
+        job.company,
+        job.location,
+        job.contractType,
+        job.experienceLevel,
+        job.description,
+        ...(Array.isArray(job.requirements) ? job.requirements : []),
+        ...(Array.isArray(job.benefits) ? job.benefits : []),
+      ].join(" ")
+    );
+
+  const selectedCategoryData = jobCategories.find((category) => category.title === selectedJobCategory);
+  const filteredJobs = jobs.filter((job) => {
+    if (!selectedCategoryData && !selectedJobTag) return true;
+
+    const jobText = getJobSearchText(job);
+    const categoryMatches = selectedCategoryData
+      ? selectedCategoryData.keywords.some((keyword) => jobText.includes(normalizeText(keyword)))
+      : true;
+    const tagMatches = selectedJobTag ? jobText.includes(normalizeText(selectedJobTag)) : true;
+
+    return categoryMatches && tagMatches;
+  });
+
+  const activeJobFilterLabel = selectedJobCategory
+    ? selectedJobTag
+      ? `${selectedJobCategory} / ${selectedJobTag}`
+      : selectedJobCategory
+    : "Todas as áreas";
+
+  const clearJobFilter = () => {
+    setSelectedJobCategory("");
+    setSelectedJobTag("");
+  };
+
   return (
     <div
       ref={scrollContainerRef}
@@ -238,11 +369,11 @@ const Discover = () => {
         </div>
 
         <div
-          className={`mb-8 rounded-md border shadow-md ${
+          className={`mb-5 rounded-md border shadow-md ${
             isDark ? "border-slate-700 bg-slate-800/80" : "border-slate-200/60 bg-white/80"
           }`}
         >
-          <div className="p-6">
+          <div className="p-5">
             <div className="relative">
               <Search
                 className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform ${
@@ -271,6 +402,122 @@ const Discover = () => {
           </div>
         </div>
 
+        {activeTab === "vagas" && (
+          <div className="mb-6">
+            <div
+              className={`mb-3 flex flex-col justify-between gap-2 rounded-xl border px-4 py-3 sm:flex-row sm:items-center ${
+                isDark
+                  ? "border-slate-700 bg-slate-800/80"
+                  : "border-indigo-100 bg-indigo-50/70"
+              }`}
+            >
+              <div>
+                <p className={isDark ? "text-sm font-semibold text-slate-400" : "text-sm font-semibold text-slate-500"}>
+                  Filtro ativo
+                </p>
+                <p className={isDark ? "text-base font-bold text-slate-100" : "text-base font-bold text-slate-900"}>
+                  {activeJobFilterLabel}
+                </p>
+              </div>
+              {(selectedJobCategory || selectedJobTag) && (
+                <button
+                  type="button"
+                  onClick={clearJobFilter}
+                  className={`inline-flex h-9 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold shadow-sm transition-colors ${
+                    isDark
+                      ? "bg-slate-900 text-slate-200 hover:text-violet-300"
+                      : "bg-white text-slate-700 hover:text-violet-700"
+                  }`}
+                >
+                  <X className="h-4 w-4" />
+                  Limpar filtro
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {jobCategories.map((category) => {
+                const isSelected = selectedJobCategory === category.title;
+
+                return (
+                  <button
+                    key={category.title}
+                    type="button"
+                    onClick={() => {
+                      setSelectedJobCategory(category.title);
+                      setSelectedJobTag("");
+                    }}
+                    className={`group rounded-lg border px-3 py-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                      isSelected
+                        ? isDark
+                          ? "border-violet-400 bg-slate-800 shadow-md shadow-violet-950/30"
+                          : "border-violet-300 bg-white shadow-md shadow-violet-200/60"
+                        : isDark
+                        ? "border-slate-700 bg-slate-800/70 hover:border-violet-500/60"
+                        : "border-slate-200 bg-slate-50 hover:border-violet-200"
+                    }`}
+                  >
+                    <span className="flex items-start gap-3">
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md shadow-sm transition-colors [&_svg]:size-4 ${
+                          isSelected
+                            ? "bg-violet-700 text-white"
+                            : isDark
+                            ? "bg-slate-900 text-violet-300 group-hover:bg-violet-700 group-hover:text-white"
+                            : "bg-white text-violet-700 group-hover:bg-violet-700 group-hover:text-white"
+                        }`}
+                      >
+                        {category.icon}
+                      </span>
+
+                      <span className="min-w-0 flex-1">
+                        <span className={`block text-sm font-bold ${isDark ? "text-slate-100" : "text-slate-950"}`}>
+                          {category.title}
+                        </span>
+
+                        <span className="mt-2 flex flex-wrap gap-1.5">
+                          {category.tags.map((tag) => {
+                            const isTagSelected = isSelected && selectedJobTag === tag;
+
+                            return (
+                              <span
+                                key={tag}
+                                role="button"
+                                tabIndex={0}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setSelectedJobCategory(category.title);
+                                  setSelectedJobTag(isTagSelected ? "" : tag);
+                                }}
+                                onKeyDown={(event) => {
+                                  if (event.key !== "Enter" && event.key !== " ") return;
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  setSelectedJobCategory(category.title);
+                                  setSelectedJobTag(isTagSelected ? "" : tag);
+                                }}
+                                className={`rounded-full px-2.5 py-1 text-[11px] font-bold leading-none transition-colors ${
+                                  isTagSelected
+                                    ? "bg-violet-700 text-white"
+                                    : isDark
+                                    ? "bg-slate-900 text-slate-300 hover:bg-violet-900/60 hover:text-white"
+                                    : "bg-white text-slate-700 hover:bg-violet-50 hover:text-violet-700"
+                                }`}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {loading && <Loading height="45vh" size={48} />}
 
         {!loading && (
@@ -280,9 +527,7 @@ const Discover = () => {
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div className={isDark ? "text-sm text-slate-300" : "text-sm text-slate-600"}>
                     {recommendedMode
-                      ? recommendationsUsedAI
-                        ? "Vagas ordenadas pela analise de IA do seu portfolio."
-                        : "Vagas ordenadas por compatibilidade tecnica basica."
+                      ? "Vagas ordenadas por cobertura dos requisitos técnicos identificados."
                       : "Busque vagas ou gere recomendacoes com base no seu portfolio."}
                   </div>
                   <button
@@ -291,9 +536,15 @@ const Discover = () => {
                     className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
                   >
                     <Sparkles className="h-4 w-4" />
-                    Recomendar com IA
+                    Encontrar vagas compatíveis
                   </button>
                 </div>
+
+                {recommendedMode && recommendationTruncated && (
+                  <p className="mb-4 text-xs text-slate-500">
+                    Para manter a resposta rápida, o ranking considera até {recommendationLimit} das vagas locais mais recentes.
+                  </p>
+                )}
 
                 {jobSources.external > 0 && (
                   <div
@@ -307,19 +558,31 @@ const Discover = () => {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-6">
-                  {jobs && jobs.length > 0 ? (
-                    jobs.map((job) => (
+                  {filteredJobs && filteredJobs.length > 0 ? (
+                    filteredJobs.map((job) => (
                       <DiscoverJobCard
                         key={job.id}
                         job={job}
+                        onAnalyze={handleAnalyzeJob}
                       />
                     ))
                   ) : (
                     <div className={`text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                      Nenhuma vaga encontrada.
+                      Nenhuma vaga encontrada para esse filtro.
                     </div>
                   )}
                 </div>
+                {recommendedMode && recommendationHasMore && !loading && (
+                  <div className="mt-6 text-center">
+                    <button
+                      type="button"
+                      onClick={handleMoreRecommendedJobs}
+                      className="rounded-lg border border-indigo-200 bg-white px-5 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50"
+                    >
+                      Carregar mais recomendações
+                    </button>
+                  </div>
+                )}
               </>
             )}
 

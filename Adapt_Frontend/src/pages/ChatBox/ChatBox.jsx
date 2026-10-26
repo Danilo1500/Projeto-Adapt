@@ -82,7 +82,7 @@ const ChatBox = () => {
       <div className='flex shrink-0 items-center gap-3 border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50 px-3 py-3 pr-16 sm:px-6 sm:pr-6 md:px-10 xl:pl-20'>
         <img src={user.profile_picture} alt="" className='size-9 shrink-0 rounded-full object-cover'/>
         <div className='min-w-0'>
-          <p className='truncate font-medium text-slate-800'>{user.full_name}</p>
+          <p data-i18n-ignore className='truncate font-medium text-slate-800'>{user.full_name}</p>
           <p className='-mt-1 truncate text-sm text-gray-500'>@{user.username}</p>
         </div>
       </div>
@@ -102,7 +102,7 @@ const ChatBox = () => {
                     />
                   )
                   }
-                  <p className='break-words'>{message.text}</p>
+                  <p data-i18n-ignore className='break-words'>{message.text}</p>
                 </div>
 
               </div>

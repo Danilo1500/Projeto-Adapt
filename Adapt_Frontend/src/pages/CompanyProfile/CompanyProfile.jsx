@@ -126,7 +126,7 @@ const CompanyProfile = () => {
 
           <div className="p-4 text-center">
             <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow">
-              Trabalhe Conosco
+              {"Trabalhe Conosco"}
             </button>
           </div>
         </div>
@@ -151,7 +151,7 @@ const CompanyProfile = () => {
               {posts.length > 0 ? (
                 posts.map((post) => <PostCard key={post._id} post={post} />)
               ) : (
-                <p className="text-sm text-gray-500">Sem posts desta empresa ate o momento.</p>
+              <p className="text-sm text-gray-500">Sem posts desta empresa ate o momento.</p>
               )}
             </div>
           )}
@@ -178,7 +178,7 @@ const CompanyProfile = () => {
               {technologies.map((tech, index) => (
                 <div key={`${tech}-${index}`} className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
                   <div className="text-3xl">#</div>
-                  <h3 className="mt-2 font-semibold text-lg">{tech}</h3>
+                  <h3 data-i18n-ignore className="mt-2 font-semibold text-lg">{tech}</h3>
                   <p className="text-gray-600 text-sm mt-1">Tecnologia utilizada pela empresa.</p>
                 </div>
               ))}
@@ -198,8 +198,8 @@ const CompanyProfile = () => {
                       className="w-24 h-24 rounded-full object-cover mx-auto"
                       alt=""
                     />
-                    <h3 className="mt-3 font-semibold">{member?.full_name || "Membro"}</h3>
-                    <p className="text-gray-600 text-sm">@{member?.username || "membro"}</p>
+                    <h3 data-i18n-ignore className="mt-3 font-semibold">{member?.full_name || "Membro"}</h3>
+                    <p data-i18n-ignore className="text-gray-600 text-sm">@{member?.username || "membro"}</p>
                   </div>
                 ))
               ) : (
@@ -214,7 +214,7 @@ const CompanyProfile = () => {
                 company.frameworks.map((framework, index) => (
                   <div key={`${framework}-${index}`} className="bg-white rounded-xl shadow hover:shadow-lg transition">
                     <div className="p-4">
-                      <h3 className="font-semibold">{framework}</h3>
+                      <h3 data-i18n-ignore className="font-semibold">{framework}</h3>
                       <p className="text-gray-600 text-sm mt-1">Framework utilizado nos projetos da empresa.</p>
                     </div>
                   </div>

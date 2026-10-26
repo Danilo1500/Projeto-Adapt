@@ -1,134 +1,146 @@
 import { Button } from "./ui/button";
-import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  CheckCircle2,
+  MessageSquare,
+  Search,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
 import { motion } from "framer-motion";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
-import codBack from '../assets/ff4088e41ec68b9e4a54a2f4a5a34682c972ab5e.png'
+import { useNavigate } from "react-router-dom";
 
 export function ModernHeroSection() {
+  const navigate = useNavigate();
+
+  const matches = [
+    { name: "Dev Front-end", score: "96%", detail: "React, UI, produto" },
+    { name: "Analista Cloud", score: "91%", detail: "AWS, automação, segurança" },
+    { name: "UX Researcher", score: "88%", detail: "Pesquisa, acessibilidade" },
+  ];
+
   return (
-    <section id="home" className="relative pt-32 pb-20 overflow-hidden">
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#4600ff]/5 via-purple-50 to-white" />
-      
-      {/* Decorative Elements */}
-      <div className="absolute top-20 right-10 w-72 h-72 bg-[#4600ff]/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
+    <section id="home" className="relative overflow-hidden bg-[#f7f9fc] pt-32 pb-14 lg:pb-20">
+      <div className="absolute inset-x-0 top-0 h-40 bg-white" />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.02fr_0.98fr]">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55 }}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 bg-[#4600ff]/10 text-[#4600ff] px-4 py-2 rounded-full mb-6"
-            >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#4600ff]/20 bg-white px-4 py-2 text-sm font-semibold text-[#4600ff] shadow-sm">
               <Sparkles className="size-4" />
-              <span className="text-sm font-semibold">Plataforma #1 para Profissionais de TI</span>
-            </motion.div>
+              Rede de talentos e vagas para tecnologia
+            </div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight">
-              Crie o seu{" "}
-              <span className="text-[#4600ff] relative">
-                futuro
-                <svg
-                  className="absolute -bottom-2 left-0 w-full"
-                  height="12"
-                  viewBox="0 0 200 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M2 10C50 2 150 2 198 10"
-                    stroke="#4600ff"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              <br />
-              na tecnologia
+            <h1 className="max-w-3xl text-5xl font-black leading-tight text-gray-950 md:text-6xl lg:text-7xl">
+              Encontre o match certo entre talento e oportunidade.
             </h1>
 
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Conecte-se com as melhores oportunidades de carreira em TI. Empresas inovadoras 
-              estão procurando por talentos como você.
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 md:text-xl">
+              O ADAPT aproxima profissionais de TI, empresas e recrutadores em um ambiente com perfil, vagas, conexões e conversas no mesmo fluxo.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-[#4600ff] hover:bg-[#3800cc] text-white rounded-full px-8 gap-2 shadow-lg shadow-[#4600ff]/25">
-                Começar Agora
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button
+                size="lg"
+                onClick={() => navigate("/")}
+                className="h-12 rounded-full bg-[#4600ff] px-8 text-white shadow-lg shadow-[#4600ff]/20 hover:bg-[#3800cc]"
+              >
+                Criar meu perfil
                 <ArrowRight className="size-5" />
               </Button>
-              <Button size="lg" variant="outline" className="border-2 border-[#4600ff] text-[#4600ff] hover:bg-[#4600ff] hover:text-white rounded-full px-8">
-                Sou Empresa
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("/")}
+                className="h-12 rounded-full border-2 border-gray-300 px-8 text-gray-800 hover:border-[#4600ff] hover:bg-white hover:text-[#4600ff]"
+              >
+                Publicar uma vaga
               </Button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 mt-12 pt-12 border-t border-gray-200">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-3xl font-black text-[#4600ff]">500+</p>
-                  <TrendingUp className="size-5 text-[#4600ff]" />
+            <div className="mt-10 grid grid-cols-3 gap-4 border-t border-gray-200 pt-8">
+              {[
+                ["Perfis", "com portfólio e skills"],
+                ["Vagas", "filtradas por aderência"],
+                ["Chat", "direto com empresas"],
+              ].map(([title, detail]) => (
+                <div key={title}>
+                  <p className="text-lg font-black text-gray-950">{title}</p>
+                  <p className="mt-1 text-sm leading-snug text-gray-500">{detail}</p>
                 </div>
-                <p className="text-sm text-gray-600">Empresas Cadastradas</p>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-3xl font-black text-[#4600ff]">10k+</p>
-                  <TrendingUp className="size-5 text-[#4600ff]" />
-                </div>
-                <p className="text-sm text-gray-600">Profissionais Ativos</p>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-3xl font-black text-[#4600ff]">95%</p>
-                  <TrendingUp className="size-5 text-[#4600ff]" />
-                </div>
-                <p className="text-sm text-gray-600">Taxa de Sucesso</p>
-              </div>
+              ))}
             </div>
           </motion.div>
 
-          {/* Right Image */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.1 }}
             className="relative"
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-              <ImageWithFallback
-                src={codBack}
-                alt="Professional workspace"
-                className="w-full h-[600px] object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#4600ff]/20 to-transparent" />
-            </div>
-
-            {/* Floating Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl"
-            >
-              <div className="flex items-center gap-4">
-                <div className="bg-green-500 text-white size-12 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">✓</span>
+            <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-2xl shadow-gray-900/10">
+              <div className="rounded-3xl bg-gray-950 p-5 text-white">
+                <div className="mb-8 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-white/60">Painel ADAPT</p>
+                    <p className="text-2xl font-black">Matches de hoje</p>
+                  </div>
+                  <div className="rounded-full bg-emerald-400/15 px-3 py-1 text-sm font-semibold text-emerald-300">
+                    Online
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Nova contratação</p>
-                  <p className="font-bold text-gray-900">João Silva - Dev Full Stack</p>
+
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { icon: <Search className="size-5" />, label: "Busca", value: "124" },
+                    { icon: <UsersRound className="size-5" />, label: "Talentos", value: "38" },
+                    { icon: <BriefcaseBusiness className="size-5" />, label: "Vagas", value: "17" },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-2xl bg-white/10 p-4">
+                      <div className="mb-4 text-[#8cffc1]">{item.icon}</div>
+                      <p className="text-2xl font-black">{item.value}</p>
+                      <p className="text-sm text-white/55">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {matches.map((match) => (
+                    <div key={match.name} className="flex items-center justify-between rounded-2xl bg-white p-4 text-gray-950">
+                      <div>
+                        <p className="font-bold">{match.name}</p>
+                        <p className="text-sm text-gray-500">{match.detail}</p>
+                      </div>
+                      <div className="rounded-full bg-[#4600ff]/10 px-3 py-1 text-sm font-black text-[#4600ff]">
+                        {match.score}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex items-center gap-3 rounded-2xl bg-[#4600ff] p-4">
+                  <MessageSquare className="size-6" />
+                  <div>
+                    <p className="font-bold">Conversa iniciada</p>
+                    <p className="text-sm text-white/75">Empresa e candidato alinhando próximos passos.</p>
+                  </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
+
+            <div className="absolute -bottom-5 -left-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-xl shadow-gray-900/10 sm:-left-8">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="size-8 text-emerald-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Match recomendado</p>
+                  <p className="font-black text-gray-950">Full Stack Pleno</p>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

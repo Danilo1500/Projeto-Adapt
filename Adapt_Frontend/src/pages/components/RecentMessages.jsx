@@ -82,7 +82,7 @@ const RecentMessages = () => {
               <div className="w-full">
                 <div className="flex justify-between">
                   <p className={`font-medium ${isDark ? "text-slate-100" : "text-slate-800"}`}>
-                    {from.full_name || "Usuário"}
+                    <span data-i18n-ignore>{from.full_name || "Usuário"}</span>
                   </p>
                   <p className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-400"}`}>
                     {moment(message.createdAt).fromNow()}
@@ -90,7 +90,7 @@ const RecentMessages = () => {
                 </div>
                 <div className="flex justify-between">
                   <p className={isDark ? "text-slate-400" : "text-gray-500"}>
-                    {message.text || "Media"}
+                    <span data-i18n-ignore>{message.text || "Media"}</span>
                   </p>
                   {!message.seen && (
                     <p className="bg-indigo-500 text-white w-4 h-4 flex items-center justify-center rounded-full text-[10px]">

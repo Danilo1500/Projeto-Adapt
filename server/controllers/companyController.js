@@ -1,4 +1,5 @@
 import { inngest } from "../inngest/index.js";
+import { getAdminClerkOrganization } from "../services/companyAuthorization.js";
 import Company from "../models/Company.js";
 import imagekit from "../configs/imageKit.js";
 import fs from "fs";
@@ -41,10 +42,20 @@ export const syncCompanyFromOrganization = async (req, res) => {
     } = req.body;
 
     if (!clerkOrganizationId || !name) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "clerkOrganizationId e name sao obrigatorios.",
       });
+    }
+
+    const organization = await getAdminClerkOrganization(userId, clerkOrganizationId);
+    if (!organization) {
+      return res.status(403).json({ success: false, message: "Somente um administrador da organização pode sincronizar a empresa." });
+    }
+
+    const existingCompany = await Company.findOne({ clerkOrganizationId });
+    if (existingCompany && String(existingCompany.ownerId) !== String(userId)) {
+      return res.status(409).json({ success: false, message: "Esta organização já está vinculada a outra conta." });
     }
 
     await inngest.send({
@@ -52,8 +63,8 @@ export const syncCompanyFromOrganization = async (req, res) => {
       data: {
         ownerId: userId,
         clerkOrganizationId,
-        name,
-        slug,
+        name: organization.name,
+        slug: organization.slug || slug,
         industry,
         size,
         location,
@@ -83,8 +94,8 @@ export const syncCompanyFromOrganization = async (req, res) => {
       company,
     });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error("Failed to sync company from Clerk organization:", error);
+    return res.status(500).json({ success: false, message: "Não foi possível sincronizar a empresa." });
   }
 };
 

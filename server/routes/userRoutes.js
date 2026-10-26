@@ -3,6 +3,7 @@ import { acceptConnectionRequest, discoverUsers, followUser, getUserConnections,
 import { protect } from '../middlewares/auth.js';
 import { upload } from '../configs/multer.js';
 import { getUserRecentMessages } from '../controllers/messageController.js';
+import { getLearningRecommendations, updateLearningPreferences, updateLearningProgress } from '../controllers/learningController.js';
 
 const userRouter = express.Router();
 
@@ -16,5 +17,8 @@ userRouter.post('/accept', protect, acceptConnectionRequest)
 userRouter.get('/connections', protect, getUserConnections)
 userRouter.post('/profiles', protect, getUserProfiles)
 userRouter.get('/recent-messages', protect, getUserRecentMessages)
+userRouter.get('/learning-recommendations', protect, getLearningRecommendations)
+userRouter.patch('/learning-progress', protect, updateLearningProgress)
+userRouter.patch('/learning-preferences', protect, updateLearningPreferences)
 
 export default userRouter

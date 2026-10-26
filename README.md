@@ -13,6 +13,16 @@ Plataforma para conexao entre profissionais de TI e empresas, com feed social, m
 - Perfil de empresa com tabs e midias
 - Vagas e descoberta
 - Notificacoes por e-mail via Inngest (mensagens e comentarios)
+- Recomendacoes de vagas por competencias do perfil, com requisitos atendidos e lacunas
+- Recursos oficiais de aprendizagem associados a algumas lacunas reconhecidas
+
+### Matching de vagas
+- O perfil e as vagas publicados sao lidos do MongoDB existente.
+- O backend normaliza competencias conhecidas e aliases (por exemplo, JS/JavaScript) e calcula cobertura dos requisitos obrigatorios (80% por padrao) e desejaveis (20%). Os pesos podem ser alterados por ambiente.
+- Competencias nao encontradas sao apresentadas como "nao identificadas no perfil"; nao significam que a pessoa nao as possui. Sem dados suficientes, o score fica indisponivel.
+- O perfil atual guarda competencias declaradas, mas nao tem campos estruturados para projetos, experiencia, formacao ou preferencias de modalidade. Esses criterios aparecem como nao avaliados quando aplicavel.
+- A correspondencia usa regras e um vocabulario de aliases; nao usa embeddings nem chama um modelo externo. O catalogo pequeno de aprendizagem aponta para materiais oficiais verificados e nao inventa duracao ou nivel quando a fonte nao os informa.
+- O ranking considera ate `MATCH_MAX_CANDIDATE_JOBS` vagas locais publicadas mais recentes (500 por padrao), alem das vagas Remotive retornadas. Resultados Remotive ficam em cache por 10 minutos.
 
 ### Stack
 - Frontend: React + Vite + Tailwind
@@ -56,6 +66,9 @@ SMTP_USER=
 SMTP_PASS=
 SENDER_EMAIL=
 FRONTEND_URL=
+MATCH_WEIGHT_REQUIRED=80
+MATCH_WEIGHT_DESIRED=20
+MATCH_MAX_CANDIDATE_JOBS=500
 ```
 
 #### Frontend (`Adapt_Frontend/.env`)
@@ -69,6 +82,7 @@ VITE_CLERK_PUBLISHABLE_KEY=
 #### Backend
 - `npm run server` inicia com nodemon
 - `npm start` inicia com node
+- `npm test` executa os testes do matching e das rotas relacionadas
 
 #### Frontend
 - `npm run dev` ambiente de desenvolvimento
@@ -99,6 +113,16 @@ Platform to connect IT professionals and companies, with social feed, real-time 
 - Company profile with tabs and media
 - Jobs and discovery
 - Email notifications via Inngest (messages and comments)
+- Profile-skill job recommendations, with matched requirements and skill gaps
+- Official learning resources linked to some identified gaps
+
+### Job matching
+- Published jobs and candidate profiles are read from the existing MongoDB collections.
+- The backend normalizes known skills and aliases (for example, JS/JavaScript) and calculates coverage of required skills (80% by default) and desirable skills (20%). Weights are configurable by environment.
+- Skills not found are described as "not identified in the profile"; this does not mean the candidate lacks them. If data is insufficient, no score is shown.
+- The current profile stores declared skills but has no structured fields for projects, experience, education, or work-mode preferences. These criteria are marked as not evaluated when relevant.
+- Matching uses transparent rules and a skill-alias vocabulary; it does not use embeddings or call an external model. The small learning catalog links to verified official material and does not invent duration or level when the source omits them.
+- Ranking considers up to `MATCH_MAX_CANDIDATE_JOBS` most recent published local jobs (500 by default), plus returned Remotive jobs. Remotive results are cached for 10 minutes.
 
 ### Stack
 - Frontend: React + Vite + Tailwind
@@ -142,6 +166,9 @@ SMTP_USER=
 SMTP_PASS=
 SENDER_EMAIL=
 FRONTEND_URL=
+MATCH_WEIGHT_REQUIRED=80
+MATCH_WEIGHT_DESIRED=20
+MATCH_MAX_CANDIDATE_JOBS=500
 ```
 
 #### Frontend (`Adapt_Frontend/.env`)
@@ -155,6 +182,7 @@ VITE_CLERK_PUBLISHABLE_KEY=
 #### Backend
 - `npm run server` starts with nodemon
 - `npm start` starts with node
+- `npm test` runs the matching and related route tests
 
 #### Frontend
 - `npm run dev` dev environment

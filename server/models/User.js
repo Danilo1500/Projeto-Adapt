@@ -18,6 +18,17 @@ const userSchema = new mongoose.Schema({
       fileName: { type: String, default: '' },
     },
   },
+  learningProgress: [{
+    courseId: { type: String, required: true },
+    status: { type: String, enum: ['want', 'in_progress', 'completed'], default: 'want' },
+    projectStatus: { type: String, enum: ['planned', 'in_progress', 'completed'], default: 'planned' },
+    acquiredSkills: [{ type: String, trim: true }],
+    updatedAt: { type: Date, default: Date.now },
+  }],
+  learningPreferences: {
+    targetRole: { type: String, trim: true, maxlength: 100, default: '' },
+    desiredSkills: [{ type: String, trim: true, maxlength: 60 }],
+  },
   followers: [{ type: String, ref: 'User' }],
   following: [{ type: String, ref: 'User' }],
   connections: [{ type: String, ref: 'User' }],

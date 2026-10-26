@@ -1,189 +1,235 @@
-const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+import { findCoursesForSkills } from "./courseCatalog.js";
 
-const normalizeText = (value = "") =>
-  String(value)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9+#.\s-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+const SKILLS = {
+  javascript: ["javascript", "js", "ecmascript"],
+  typescript: ["typescript", "ts"],
+  python: ["python", "python3"],
+  java: ["java"],
+  "c#": ["c#", "c sharp", "csharp"],
+  ".net": [".net", "dotnet", "asp.net", "asp net"],
+  "c++": ["c++", "cpp"],
+  go: ["golang", "go language"],
+  rust: ["rust", "rustlang"],
+  php: ["php"],
+  ruby: ["ruby", "rails", "ruby on rails"],
+  swift: ["swift", "swiftui"],
+  kotlin: ["kotlin"],
+  react: ["react", "react.js", "reactjs"],
+  "react native": ["react native", "react-native"],
+  "node.js": ["node", "node.js", "nodejs"],
+  express: ["express", "express.js", "expressjs"],
+  angular: ["angular", "angularjs"],
+  vue: ["vue", "vue.js", "vuejs"],
+  nextjs: ["next.js", "nextjs"],
+  spring: ["spring", "spring boot", "springboot"],
+  django: ["django"],
+  flask: ["flask"],
+  "asp.net": ["asp.net", "asp net", ".net", "dotnet"],
+  sql: ["sql", "structured query language"],
+  postgresql: ["postgresql", "postgres", "postgre sql"],
+  mysql: ["mysql"],
+  mongodb: ["mongodb", "mongo", "mongo db"],
+  redis: ["redis"],
+  aws: ["aws", "amazon web services"],
+  azure: ["azure", "microsoft azure"],
+  gcp: ["gcp", "google cloud", "google cloud platform"],
+  docker: ["docker", "containers", "containerization"],
+  kubernetes: ["kubernetes", "k8s"],
+  terraform: ["terraform", "infrastructure as code", "iac"],
+  "ci/cd": ["ci/cd", "continuous integration", "continuous delivery", "continuous deployment"],
+  linux: ["linux"],
+  git: ["git", "github", "gitlab", "version control"],
+  graphql: ["graphql", "graph ql"],
+  rest: ["rest api", "restful", "rest apis"],
+  html: ["html", "html5"],
+  css: ["css", "css3"],
+  figma: ["figma"],
+  "machine learning": ["machine learning", "ml", "aprendizado de maquina", "aprendizado de máquina"],
+  "data analysis": ["data analysis", "data analytics", "analise de dados", "análise de dados", "analytics"],
+  "power bi": ["power bi", "powerbi"],
+  tableau: ["tableau"],
+  cybersecurity: ["cybersecurity", "cyber security", "ciberseguranca", "cibersegurança"],
+  testing: ["testing", "testes", "software testing", "qa", "quality assurance"],
+  agile: ["agile", "scrum", "kanban", "metodologias ageis", "metodologias ágeis"],
+  communication: ["communication", "comunicacao", "comunicação"],
+  leadership: ["leadership", "lideranca", "liderança"],
+};
 
-const unique = (items) => Array.from(new Set(items.map((item) => String(item).trim()).filter(Boolean)));
+const normalized = (value = "") => String(value)
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .replace(/[^a-z0-9+#./\s-]/g, " ")
+  .replace(/\s+/g, " ")
+  .trim();
 
-const getProfileSkills = (user) => {
+const aliasEntries = Object.entries(SKILLS).flatMap(([canonical, aliases]) =>
+  aliases.map((alias) => [normalized(alias), canonical])
+).sort(([a], [b]) => b.length - a.length);
+
+const unique = (items) => [...new Set(items)];
+const stringList = (items) => Array.isArray(items) ? items.filter((item) => typeof item === "string") : [];
+
+export const normalizeSkill = (value) => {
+  const input = normalized(value);
+  if (!input) return null;
+  const alias = aliasEntries.find(([needle]) => input === needle);
+  return alias?.[1] || null;
+};
+
+export const extractKnownSkills = (values) => {
+  const text = normalized(stringList(values).join(" "));
+  const accepted = [];
+  for (const [alias, canonical] of aliasEntries) {
+    const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`(^|[^a-z0-9+#])(${escaped})(?=$|[^a-z0-9+#])`, "gi");
+    for (const match of text.matchAll(pattern)) {
+      const start = match.index + match[1].length;
+      const end = start + match[2].length;
+      if (!accepted.some((item) => start < item.end && end > item.start)) {
+        accepted.push({ start, end, canonical });
+      }
+    }
+  }
+  return unique(accepted.sort((a, b) => a.start - b.start).map(({ canonical }) => canonical));
+};
+
+const profileSkillData = (user) => {
   const portfolio = user?.portfolio || {};
-  return unique([
-    ...(portfolio.languages || []),
-    ...(portfolio.libraries || []),
-    ...(portfolio.frameworks || []),
+  const declared = unique([
+    ...extractKnownSkills(stringList(portfolio.languages)),
+    ...extractKnownSkills(stringList(portfolio.libraries)),
+    ...extractKnownSkills(stringList(portfolio.frameworks)),
+    ...extractKnownSkills([user?.bio || ""]),
   ]);
+  // The current profile schema has no project/experience evidence fields.
+  return { declared, demonstrated: [] };
 };
 
-const jobToSearchText = (job) =>
-  normalizeText([
-    job.title,
-    job.company,
-    job.location,
-    job.contractType,
-    job.experienceLevel,
-    job.description,
-    ...(job.requirements || []),
-    ...(job.benefits || []),
-    job.category,
-  ].join(" "));
+const OPTIONAL_REQUIREMENT = /\b(nice to have|nice-to-have|optional|preferred|desirable|bonus|plus|desej[aá]vel|diferencial|ser[aá] um diferencial)\b/i;
 
-export const buildProfileSummary = (user) => {
-  const portfolio = user?.portfolio || {};
-  const resume = portfolio.resume?.fileName ? `Curriculo enviado: ${portfolio.resume.fileName}` : "Curriculo nao enviado";
+const splitRequirementSkills = (job) => {
+  const requirements = stringList(job?.requirements);
+  const explicitDesired = stringList(job?.desiredRequirements);
+  const requiredItems = requirements.filter((item) => !OPTIONAL_REQUIREMENT.test(item));
+  const desiredItems = [...requirements.filter((item) => OPTIONAL_REQUIREMENT.test(item)), ...explicitDesired];
+  const unassessed = [...requirements, ...explicitDesired].filter((item) => extractKnownSkills([item]).length === 0);
+  const required = extractKnownSkills(requiredItems);
+  const desired = extractKnownSkills(desiredItems).filter((skill) => !required.includes(skill));
 
-  return [
-    `Nome: ${user?.full_name || "Nao informado"}`,
-    `Bio: ${user?.bio || "Nao informado"}`,
-    `Localizacao: ${user?.location || "Nao informada"}`,
-    `Linguagens: ${(portfolio.languages || []).join(", ") || "Nao informado"}`,
-    `Bibliotecas: ${(portfolio.libraries || []).join(", ") || "Nao informado"}`,
-    `Frameworks: ${(portfolio.frameworks || []).join(", ") || "Nao informado"}`,
-    resume,
-  ].join("\n");
-};
-
-export const rankJobsByProfile = (user, jobs, limit = 8) => {
-  const skills = getProfileSkills(user);
-  const normalizedSkills = skills.map(normalizeText).filter(Boolean);
-  const profileText = normalizeText([user?.bio, user?.location, ...skills].join(" "));
-
-  return jobs
-    .map((job) => {
-      const jobText = jobToSearchText(job);
-      const matchedSkills = skills.filter((skill, index) => {
-        const normalizedSkill = normalizedSkills[index];
-        return normalizedSkill && jobText.includes(normalizedSkill);
-      });
-
-      const titleBonus = normalizedSkills.some((skill) => normalizeText(job.title).includes(skill)) ? 15 : 0;
-      const remoteBonus = job.isRemote ? 6 : 0;
-      const locationBonus = user?.location && jobText.includes(normalizeText(user.location)) ? 8 : 0;
-      const profileWords = profileText.split(" ").filter((word) => word.length > 3);
-      const wordHits = profileWords.filter((word) => jobText.includes(word)).length;
-      const score = Math.min(100, matchedSkills.length * 18 + titleBonus + remoteBonus + locationBonus + Math.min(wordHits, 8));
-
-      return {
-        job,
-        heuristicScore: score,
-        matchedSkills,
-      };
-    })
-    .sort((a, b) => b.heuristicScore - a.heuristicScore)
-    .slice(0, limit);
-};
-
-const fallbackRecommendations = (rankedJobs) =>
-  rankedJobs.map(({ job, heuristicScore, matchedSkills }) => ({
-    jobId: String(job._id || job.id),
-    score: Math.max(35, heuristicScore),
-    matchReasons: matchedSkills.length
-      ? matchedSkills.slice(0, 3).map((skill) => `A vaga menciona ${skill}, que esta no portfolio.`)
-      : ["A vaga tem sinais de compatibilidade com a bio e os dados do perfil."],
-    missingSkills: [],
-    summary: "Recomendacao gerada por compatibilidade tecnica basica.",
-  }));
-
-const parseOpenAIResponse = (response) => {
-  const text =
-    response.output_text ||
-    response.output
-      ?.flatMap((item) => item.content || [])
-      ?.find((content) => content.type === "output_text")?.text;
-
-  if (!text) {
-    throw new Error("OpenAI response did not include output text.");
+  if (required.length || desired.length) {
+    return { required, desired, inferredSkills: [], inferred: false, unassessed };
   }
 
-  return JSON.parse(text);
+  const inferred = extractKnownSkills([job?.title, job?.description, job?.category].filter(Boolean));
+  return { required: [], desired: [], inferredSkills: inferred, inferred: inferred.length > 0, unassessed };
 };
 
-export const analyzeJobMatches = async (user, rankedJobs) => {
-  if (!process.env.OPENAI_API_KEY || rankedJobs.length === 0) {
-    return fallbackRecommendations(rankedJobs);
+const getWeights = () => {
+  const required = Number(process.env.MATCH_WEIGHT_REQUIRED || 80);
+  const desired = Number(process.env.MATCH_WEIGHT_DESIRED || 20);
+  const safeRequired = Number.isFinite(required) && required >= 0 ? required : 80;
+  const safeDesired = Number.isFinite(desired) && desired >= 0 ? desired : 20;
+  return { required: safeRequired, desired: safeDesired };
+};
+
+export const analyzeJobMatch = (user, job) => {
+  const profile = profileSkillData(user);
+  const requirements = splitRequirementSkills(job);
+  const candidateSkills = unique([...profile.declared, ...profile.demonstrated]);
+  const evaluatedSkills = unique([...requirements.required, ...requirements.desired, ...requirements.inferredSkills]);
+  const matchedRequired = requirements.required.filter((skill) => candidateSkills.includes(skill));
+  const missingRequired = requirements.required.filter((skill) => !candidateSkills.includes(skill));
+  const matchedDesired = requirements.desired.filter((skill) => candidateSkills.includes(skill));
+  const missingDesired = requirements.desired.filter((skill) => !candidateSkills.includes(skill));
+  const matchedInferred = requirements.inferredSkills.filter((skill) => candidateSkills.includes(skill));
+  const missingInferred = requirements.inferredSkills.filter((skill) => !candidateSkills.includes(skill));
+  const profileIncomplete = candidateSkills.length === 0;
+  const comparable = evaluatedSkills.length > 0;
+  const weights = getWeights();
+  const inferredWeight = requirements.inferredSkills.length && !requirements.required.length && !requirements.desired.length ? 100 : 0;
+  const activeWeight = (requirements.required.length ? weights.required : 0)
+    + (requirements.desired.length ? weights.desired : 0)
+    + inferredWeight;
+
+  let score = null;
+  if (!profileIncomplete && comparable && activeWeight > 0) {
+    const requiredCoverage = requirements.required.length ? matchedRequired.length / requirements.required.length : null;
+    const desiredCoverage = requirements.desired.length ? matchedDesired.length / requirements.desired.length : null;
+    const inferredCoverage = requirements.inferredSkills.length ? matchedInferred.length / requirements.inferredSkills.length : null;
+    score = Math.round((
+      (requiredCoverage === null ? 0 : requiredCoverage * weights.required)
+      + (desiredCoverage === null ? 0 : desiredCoverage * weights.desired)
+      + (inferredCoverage === null ? 0 : inferredCoverage * inferredWeight)
+    ) / activeWeight * 100);
   }
 
-  const profileSummary = buildProfileSummary(user);
-  const jobs = rankedJobs.map(({ job, heuristicScore, matchedSkills }) => ({
-    jobId: String(job._id || job.id),
-    title: job.title,
-    company: job.company,
-    location: job.location,
-    contractType: job.contractType,
-    experienceLevel: job.experienceLevel,
-    isRemote: Boolean(job.isRemote),
-    description: String(job.description || "").slice(0, 1200),
-    requirements: job.requirements || [],
-    heuristicScore,
-    matchedSkills,
-  }));
+  const matchReasons = [];
+  if (matchedRequired.length) matchReasons.push(`Requisitos obrigatórios identificados no perfil: ${matchedRequired.join(", ")}.`);
+  if (matchedDesired.length) matchReasons.push(`Competências desejáveis identificadas: ${matchedDesired.join(", ")}.`);
+  if (matchedInferred.length) matchReasons.push(`Competências mencionadas no título ou descrição: ${matchedInferred.join(", ")}; a vaga não classifica esses itens como obrigatórios.`);
+  if (!matchReasons.length && !profileIncomplete && comparable) matchReasons.push("Nenhum requisito listado foi identificado no perfil.");
 
-  const response = await fetch(OPENAI_RESPONSES_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_RECOMMENDATION_MODEL || "gpt-4.1-mini",
-      input: [
-        {
-          role: "system",
-          content:
-            "Voce recomenda vagas com base no perfil tecnico. Seja direto, honesto e nao invente experiencias. Responda somente no schema solicitado.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            profile: profileSummary,
-            jobs,
-            instructions:
-              "Retorne recomendacoes ordenadas por score. Use score 0-100. matchReasons e missingSkills devem ser curtos, em portugues.",
-          }),
-        },
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "job_recommendations",
-          strict: true,
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              recommendations: {
-                type: "array",
-                items: {
-                  type: "object",
-                  additionalProperties: false,
-                  properties: {
-                    jobId: { type: "string" },
-                    score: { type: "integer", minimum: 0, maximum: 100 },
-                    matchReasons: { type: "array", items: { type: "string" } },
-                    missingSkills: { type: "array", items: { type: "string" } },
-                    summary: { type: "string" },
-                  },
-                  required: ["jobId", "score", "matchReasons", "missingSkills", "summary"],
-                },
-              },
-            },
-            required: ["recommendations"],
-          },
-        },
-      },
-    }),
+  const missingSkills = [...missingRequired, ...missingDesired, ...missingInferred];
+  const courses = findCoursesForSkills(missingSkills);
+  const notEvaluated = [...requirements.unassessed.map((requirement) => `Requisito não reconhecido pelo catálogo de competências: ${requirement}`)];
+  if (job?.experienceLevel) notEvaluated.push("Nível de experiência: o perfil atual não possui um campo equivalente para comparação.");
+
+  return {
+    score,
+    scoreMeaning: `Cobertura dos requisitos técnicos identificados, não probabilidade de contratação. Pesos configurados: obrigatórios ${weights.required} e desejáveis ${weights.desired}; grupos presentes são normalizados. Se a vaga não lista requisitos, as competências inferidas do texto usam 100% da pontuação.`,
+    weights,
+    profileIncomplete,
+    profileNotice: profileIncomplete ? "O perfil não lista competências suficientes para calcular compatibilidade." : "",
+    comparable,
+    comparisonNotice: !comparable ? "A vaga não informa competências reconhecidas para comparação." : "",
+    declaredSkills: profile.declared,
+    demonstratedSkills: profile.demonstrated,
+    evidenceNotice: "O perfil atual não possui campos estruturados de projetos ou experiência; estas competências vêm do portfólio e da bio declarados pelo candidato.",
+    matchedSkills: unique([...matchedRequired, ...matchedDesired, ...matchedInferred]),
+    requiredSkills: requirements.required,
+    matchedRequired,
+    missingRequired,
+    desiredSkills: requirements.desired,
+    matchedDesired,
+    missingDesired,
+    inferredSkills: requirements.inferredSkills,
+    matchedInferred,
+    missingInferred,
+    unassessedRequirements: requirements.unassessed,
+    notEvaluated,
+    missingSkills,
+    matchReasons,
+    summary: profileIncomplete
+      ? "Complete as competências do portfólio para receber uma comparação mais útil."
+      : comparable
+        ? `${matchedRequired.length} de ${requirements.required.length} requisitos obrigatórios identificados no perfil.`
+        : "Adicione requisitos técnicos à vaga para habilitar a comparação.",
+    courses,
+  };
+};
+
+export const rankJobsByProfile = (user, jobs) => jobs
+  .map((job) => ({ job, aiMatch: analyzeJobMatch(user, job) }))
+  .sort((a, b) => {
+    const aScore = a.aiMatch.score;
+    const bScore = b.aiMatch.score;
+    if (aScore === null && bScore === null) return new Date(b.job.createdAt || 0) - new Date(a.job.createdAt || 0);
+    if (aScore === null) return 1;
+    if (bScore === null) return -1;
+    if (bScore !== aScore) return bScore - aScore;
+    return new Date(b.job.createdAt || 0) - new Date(a.job.createdAt || 0);
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI request failed: ${response.status} ${errorText}`);
-  }
+export const analyzeJobMatches = async (user, jobs) => jobs.map(({ job, aiMatch }) => ({
+  jobId: String(job._id || job.id),
+  ...aiMatch,
+}));
 
-  const data = await response.json();
-  return parseOpenAIResponse(data).recommendations || fallbackRecommendations(rankedJobs);
-};
+export const MATCHING_CRITERIA = Object.freeze({
+  requiredWeightEnv: "MATCH_WEIGHT_REQUIRED",
+  desiredWeightEnv: "MATCH_WEIGHT_DESIRED",
+  defaultRequiredWeight: 80,
+  defaultDesiredWeight: 20,
+  description: "A pontuação é a cobertura ponderada dos requisitos obrigatórios (80%) e desejáveis (20%), normalizada para os grupos presentes na vaga. Competências ausentes são lacunas não identificadas no perfil, não afirmações de desconhecimento.",
+});

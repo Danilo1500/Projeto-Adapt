@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { assets } from '../assets/assets'
 import { useNavigate, Link } from 'react-router-dom';
 import MenuItems from './MenuItems';
-import { CirclePlus, LogOut, Briefcase, Building2, Settings, Sun, Moon } from 'lucide-react';
+import { CirclePlus, LogOut, Briefcase, Building2, Settings, Sun, Moon, Languages } from 'lucide-react';
 import { UserButton, useClerk } from '@clerk/clerk-react';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/Language.js';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
@@ -15,6 +16,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const [configOpen, setConfigOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
+  const isEnglish = language === 'en';
 
   const isDark = theme === 'dark';
 
@@ -26,18 +29,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       transition-all duration-300 ease-in-out
       ${isDark ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'}`}
     >
-      {/* Botão fixo de Configuração */}
+      {/* BotÃ£o fixo de ConfiguraÃ§Ã£o */}
       <button
         type='button'
         onClick={() => setConfigOpen((prev) => !prev)}
         className={`absolute top-3 right-3 z-30 size-9 rounded-md flex items-center justify-center transition 
         ${isDark ? 'bg-slate-800 text-slate-200 hover:bg-slate-700' : 'bg-white text-gray-600 hover:bg-gray-50 shadow'}`}
-        aria-label='Abrir configurações'
+        aria-label='Abrir configuraÃ§Ãµes'
       >
         <Settings className='w-5 h-5' />
       </button>
 
-      {/* Janela de Configuração (fora da sidebar) */}
+      {/* Janela de ConfiguraÃ§Ã£o (fora da sidebar) */}
       {configOpen &&
         createPortal(
           <div className='fixed inset-0 z-50'>
@@ -45,14 +48,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               type='button'
               className='absolute inset-0 bg-black/20'
               onClick={() => setConfigOpen(false)}
-              aria-label='Fechar configurações'
+              aria-label='Fechar configuraÃ§Ãµes'
             />
             <div
               className={`absolute top-4 right-4 w-72 rounded-lg border p-4 shadow-xl 
               ${isDark ? 'border-slate-700 bg-slate-800 text-slate-100' : 'border-gray-200 bg-white text-gray-900'}`}
             >
               <div className='flex items-center justify-between mb-3'>
-                <h3 className='text-sm font-semibold'>Configurações</h3>
+                <h3 className='text-sm font-semibold'>{isEnglish ? 'Settings' : 'Configurações'}</h3>
                 <button
                   type='button'
                   onClick={() => setConfigOpen(false)}
@@ -60,12 +63,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-500 hover:bg-gray-50'
                   }`}
                 >
-                  Fechar
+                  {isEnglish ? 'Close' : 'Fechar'}
                 </button>
               </div>
-              <p className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>
-                Temas
+              <p className={`mt-4 text-xs font-medium ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>
+                {isEnglish ? 'Language' : 'Idioma'}
               </p>
+              <div className='mt-2 flex gap-2'>
+                <button type='button' onClick={() => setLanguage('pt')} aria-pressed={language === 'pt'}
+                  className={`flex-1 px-2 py-2 rounded-md text-sm flex items-center justify-center gap-1 border transition ${language === 'pt' ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : isDark ? 'border-slate-700 text-slate-200 hover:bg-slate-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+                  <Languages className='w-4 h-4' /> Português
+                </button>
+                <button type='button' onClick={() => setLanguage('en')} aria-pressed={language === 'en'}
+                  className={`flex-1 px-2 py-2 rounded-md text-sm flex items-center justify-center gap-1 border transition ${language === 'en' ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : isDark ? 'border-slate-700 text-slate-200 hover:bg-slate-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+                  <Languages className='w-4 h-4' /> English
+                </button>
+              </div>
+              <p className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>{isEnglish ? 'Theme' : 'Tema'}</p>
               <div className='mt-2 flex gap-2'>
                 <button
                   type='button'
@@ -73,18 +87,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   className={`flex-1 px-3 py-2 rounded-md text-sm flex items-center justify-center gap-2 border transition 
                   ${!isDark ? 'bg-gray-100 border-gray-300 text-gray-800' : 'border-slate-700 text-slate-200 hover:bg-slate-700'}`}
                 >
-                  <Sun className='w-4 h-4' />
-                  Claro
-                </button>
+                  <Sun className='w-4 h-4' />{isEnglish ? 'Light' : 'Claro'}</button>
                 <button
                   type='button'
                   onClick={() => setTheme('dark')}
                   className={`flex-1 px-3 py-2 rounded-md text-sm flex items-center justify-center gap-2 border transition 
                   ${isDark ? 'bg-slate-700 border-slate-600 text-slate-100' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                 >
-                  <Moon className='w-4 h-4' />
-                  Escuro
-                </button>
+                  <Moon className='w-4 h-4' />{isEnglish ? 'Dark' : 'Escuro'}</button>
               </div>
             </div>
           </div>,
@@ -104,7 +114,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Itens do Menu */}
         <MenuItems setSidebarOpen={setSidebarOpen} theme={theme} />
 
-        {/* Bot�o "Criar" com submenu */}
+        {/* Botï¿½o "Criar" com submenu */}
         <div className='mt-6 mx-6'>
           <button
             type='button'
@@ -156,7 +166,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         </div>
       </div>
 
-      {/* --- Rodap� da Sidebar (usu�rio + logout) --- */}
+      {/* --- Rodapï¿½ da Sidebar (usuï¿½rio + logout) --- */}
       <div className={`w-full border-t p-4 px-7 flex items-center justify-between ${isDark ? 'border-slate-700' : 'border-gray-200'}`}>
         <div className='flex gap-2 items-center cursor-pointer'>
           <UserButton />
@@ -175,3 +185,4 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 }
 
 export default Sidebar;
+

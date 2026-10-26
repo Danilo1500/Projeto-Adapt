@@ -26,14 +26,14 @@ const CompanyCard = ({ company, onJoin }) => {
               </div>
             )}
           </div>
-          <p className="mt-4 text-lg font-semibold text-gray-900">{company.name}</p>
+          <p data-i18n-ignore className="mt-4 text-lg font-semibold text-gray-900">{company.name}</p>
           <p className="text-sm text-gray-500">{company.industry || "Setor nao informado"}</p>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-gray-600">
           {company.location && (
             <div className="flex items-center gap-1 rounded-full border border-gray-300 px-3 py-1">
-              <MapPin className="h-4 w-4 text-rose-500" /> {company.location}
+              <MapPin className="h-4 w-4 text-rose-500" /> <span data-i18n-ignore>{company.location}</span>
             </div>
           )}
 

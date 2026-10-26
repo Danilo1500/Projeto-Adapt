@@ -1,104 +1,141 @@
 import { motion } from "framer-motion";
-import { Code, Smartphone, Database, Cloud, Shield, Cpu } from "lucide-react";
 import { Button } from "./ui/button";
+import { Code2, Cpu, Database, Layers3, LockKeyhole, Sparkles, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+type Category = {
+  icon: JSX.Element;
+  title: string;
+  tags: string[];
+};
 
 export function ModernCategories() {
-  const categories = [
-    {
-      icon: <Code className="size-6" />,
-      title: "Desenvolvimento Full Stack",
-      jobs: "1.2k+ vagas",
-      gradient: "from-blue-500 to-cyan-500",
-    },
-    {
-      icon: <Smartphone className="size-6" />,
-      title: "Desenvolvimento Mobile",
-      jobs: "850+ vagas",
-      gradient: "from-purple-500 to-pink-500",
-    },
-    {
-      icon: <Database className="size-6" />,
-      title: "Banco de Dados & DBA",
-      jobs: "620+ vagas",
-      gradient: "from-green-500 to-emerald-500",
-    },
-    {
-      icon: <Cloud className="size-6" />,
-      title: "DevOps & Cloud",
-      jobs: "940+ vagas",
-      gradient: "from-orange-500 to-red-500",
-    },
-    {
-      icon: <Shield className="size-6" />,
-      title: "Segurança da Informação",
-      jobs: "480+ vagas",
-      gradient: "from-red-500 to-pink-500",
-    },
-    {
-      icon: <Cpu className="size-6" />,
-      title: "Data Science & IA",
-      jobs: "730+ vagas",
-      gradient: "from-indigo-500 to-purple-500",
-    },
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState("Produto e UX");
+  const [selectedTag, setSelectedTag] = useState("Design");
+
+  const categories: Category[] = [
+    { icon: <Code2 className="size-6" />, title: "Desenvolvimento", tags: ["Front-end", "Back-end", "Full stack"] },
+    { icon: <Cpu className="size-6" />, title: "Cloud e DevOps", tags: ["AWS", "CI/CD", "Infraestrutura"] },
+    { icon: <Database className="size-6" />, title: "Dados e IA", tags: ["BI", "Machine learning", "Analytics"] },
+    { icon: <LockKeyhole className="size-6" />, title: "Segurança", tags: ["AppSec", "SOC", "Compliance"] },
+    { icon: <Layers3 className="size-6" />, title: "Produto e UX", tags: ["Product", "Design", "Pesquisa"] },
+    { icon: <Sparkles className="size-6" />, title: "Início de carreira", tags: ["Estágio", "Júnior", "Trainee"] },
   ];
 
-  return (
-    <section id="categories" className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-            Explore oportunidades
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Encontre vagas nas principais áreas de tecnologia
-          </p>
-        </motion.div>
+  const activeLabel = useMemo(() => {
+    if (!selectedCategory) return "Todas as áreas";
+    return selectedTag ? `${selectedCategory} / ${selectedTag}` : selectedCategory;
+  }, [selectedCategory, selectedTag]);
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {categories.map((category, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group relative bg-white rounded-2xl p-6 hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden"
-            >
-              {/* Gradient background on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-              
-              <div className="relative z-10">
-                <div className={`bg-gradient-to-br ${category.gradient} size-14 rounded-xl flex items-center justify-center text-white mb-4 group-hover:bg-white group-hover:text-[#4600ff] transition-all duration-300`}>
-                  {category.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-white transition-colors duration-300">
-                  {category.title}
-                </h3>
-                <p className="text-gray-600 group-hover:text-white/90 transition-colors duration-300">
-                  {category.jobs}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+  const clearFilter = () => {
+    setSelectedCategory("");
+    setSelectedTag("");
+  };
+
+  return (
+    <section id="categories" className="bg-white py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="max-w-3xl"
+          >
+            <p className="mb-3 text-sm font-black uppercase text-[#4600ff]">Filtro de vagas</p>
+            <h2 className="text-4xl font-black leading-tight text-gray-950 md:text-5xl">
+              Escolha uma área e refine pelas tecnologias ou trilhas mais importantes.
+            </h2>
+          </motion.div>
+
+          <Button
+            size="lg"
+            onClick={() => navigate("/")}
+            className="h-12 rounded-full bg-gray-950 px-7 text-white hover:bg-[#4600ff]"
+          >
+            Ver oportunidades
+          </Button>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
-        >
-          <Button size="lg" className="bg-[#4600ff] hover:bg-[#3800cc] text-white rounded-full px-8">
-            Ver Todas as Vagas
-          </Button>
-        </motion.div>
+        <div className="mb-6 flex flex-col justify-between gap-3 rounded-2xl border border-gray-200 bg-[#f7f9fc] p-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-sm font-semibold text-gray-500">Filtro ativo</p>
+            <p className="text-lg font-black text-gray-950">{activeLabel}</p>
+          </div>
+          {(selectedCategory || selectedTag) && (
+            <button
+              type="button"
+              onClick={clearFilter}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:text-[#4600ff]"
+            >
+              <X className="size-4" />
+              Limpar filtro
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {categories.map((category, index) => {
+            const isSelected = selectedCategory === category.title;
+
+            return (
+              <motion.article
+                key={category.title}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: index * 0.06 }}
+                onClick={() => {
+                  setSelectedCategory(category.title);
+                  setSelectedTag("");
+                }}
+                className={`group cursor-pointer rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-gray-900/10 ${
+                  isSelected
+                    ? "border-[#4600ff]/40 bg-white shadow-xl shadow-[#4600ff]/10"
+                    : "border-gray-200 bg-[#f7f9fc]"
+                }`}
+              >
+                <div
+                  className={`mb-8 flex size-14 items-center justify-center rounded-xl shadow-sm transition-colors ${
+                    isSelected
+                      ? "bg-[#4600ff] text-white"
+                      : "bg-white text-[#4600ff] group-hover:bg-[#4600ff] group-hover:text-white"
+                  }`}
+                >
+                  {category.icon}
+                </div>
+                <h3 className="text-2xl font-black text-gray-950">{category.title}</h3>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {category.tags.map((tag) => {
+                    const isTagSelected = isSelected && selectedTag === tag;
+
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelectedCategory(category.title);
+                          setSelectedTag(isTagSelected ? "" : tag);
+                        }}
+                        className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                          isTagSelected
+                            ? "bg-[#4600ff] text-white"
+                            : "bg-white text-gray-700 hover:bg-[#4600ff]/10 hover:text-[#4600ff]"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

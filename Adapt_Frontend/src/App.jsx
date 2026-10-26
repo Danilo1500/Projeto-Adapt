@@ -22,6 +22,7 @@ import { fetchConnections } from "./features/connections/connectionsSlice";
 import { addMessage } from "./features/messages/messagesSlice";
 import Notification from "./pages/components/Notification";
 import Loading from "./pages/components/Loading";
+import LearningPath from "./pages/LearningPath/LearningPath";
 
 
 function App() {
@@ -94,6 +95,7 @@ function App() {
           <Route path="messages/:userId" element={<ChatBox />} />
           <Route path="connections" element={<Connections />} />
           <Route path="discover" element={<Discover />} />
+          <Route path="learning-path" element={<LearningPath />} />
           <Route path="profile" element={<Profile />} />
           <Route path="profile/:profileId" element={<Profile />} />
           <Route path="create-post" element={<CreatePost />} />

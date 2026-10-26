@@ -1,87 +1,81 @@
 import { motion } from "framer-motion";
-import { Zap, Target, Shield, Rocket, Users, BarChart } from "lucide-react";
+import { BarChart3, Bot, MessagesSquare, ShieldCheck, SlidersHorizontal, UserRoundCheck } from "lucide-react";
 
 export function ModernBenefits() {
   const benefits = [
     {
-      icon: <Zap className="size-6" />,
-      title: "Contratação Ágil",
-      description: "Processos simplificados que economizam tempo e recursos",
-      color: "from-yellow-400 to-orange-500",
+      icon: <UserRoundCheck className="size-6" />,
+      title: "Perfil que mostra potencial",
+      description: "Skills, experiências, posts e conexões ajudam candidatos a contar melhor sua trajetória.",
+      tone: "bg-[#4600ff] text-white",
     },
     {
-      icon: <Target className="size-6" />,
-      title: "Match Perfeito",
-      description: "Algoritmo inteligente conecta empresas e profissionais ideais",
-      color: "from-blue-400 to-cyan-500",
+      icon: <Bot className="size-6" />,
+      title: "Match com mais contexto",
+      description: "A IA cruza requisitos de vaga com habilidades, senioridade e preferências do profissional.",
+      tone: "bg-emerald-500 text-white",
     },
     {
-      icon: <Shield className="size-6" />,
-      title: "Segurança e Confiança",
-      description: "Verificação de perfis e avaliações transparentes",
-      color: "from-green-400 to-emerald-500",
+      icon: <MessagesSquare className="size-6" />,
+      title: "Conversas no fluxo",
+      description: "Recrutadores e candidatos seguem a conversa dentro da plataforma, sem perder histórico.",
+      tone: "bg-gray-950 text-white",
     },
     {
-      icon: <Rocket className="size-6" />,
-      title: "Crescimento Acelerado",
-      description: "Oportunidades que impulsionam sua carreira",
-      color: "from-purple-400 to-pink-500",
+      icon: <SlidersHorizontal className="size-6" />,
+      title: "Busca precisa",
+      description: "Filtros por área, senioridade e habilidades deixam a descoberta mais rápida para os dois lados.",
+      tone: "bg-cyan-500 text-white",
     },
     {
-      icon: <Users className="size-6" />,
-      title: "Rede Qualificada",
-      description: "Conecte-se com os melhores talentos e empresas",
-      color: "from-red-400 to-rose-500",
+      icon: <ShieldCheck className="size-6" />,
+      title: "Ambiente confiável",
+      description: "Perfis, empresas e interações organizadas em uma rede profissional dedicada à tecnologia.",
+      tone: "bg-amber-500 text-white",
     },
     {
-      icon: <BarChart className="size-6" />,
-      title: "Dados e Insights",
-      description: "Analytics para tomar decisões mais inteligentes",
-      color: "from-indigo-400 to-purple-500",
+      icon: <BarChart3 className="size-6" />,
+      title: "Decisões mais claras",
+      description: "Empresas acompanham aderência e candidatos entendem onde têm mais chance de avançar.",
+      tone: "bg-rose-500 text-white",
     },
   ];
 
   return (
-    <section id="benefits" className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="benefits" className="bg-white py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.5 }}
+          className="mb-12 max-w-3xl"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-            Por que escolher o <span className="text-[#4600ff]">ADAPT</span>?
+          <p className="mb-3 text-sm font-black uppercase text-[#4600ff]">Benefícios</p>
+          <h2 className="text-4xl font-black leading-tight text-gray-950 md:text-5xl">
+            Uma rede profissional feita para acelerar contratações em tecnologia.
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Uma plataforma completa que transforma a forma como empresas e profissionais se conectam
+          <p className="mt-5 text-lg leading-relaxed text-gray-600">
+            O ADAPT junta presença profissional, descoberta de vagas e relacionamento em um produto simples de usar.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {benefits.map((benefit, index) => (
-            <motion.div
-              key={index}
+            <motion.article
+              key={benefit.title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group relative bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300"
+              transition={{ duration: 0.45, delay: index * 0.06 }}
+              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-xl hover:shadow-gray-900/10"
             >
-              <div className={`bg-gradient-to-br ${benefit.color} size-14 rounded-xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+              <div className={`mb-6 flex size-12 items-center justify-center rounded-xl ${benefit.tone}`}>
                 {benefit.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                {benefit.title}
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                {benefit.description}
-              </p>
-              
-              {/* Hover effect */}
-              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${benefit.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-            </motion.div>
+              <h3 className="text-xl font-black text-gray-950">{benefit.title}</h3>
+              <p className="mt-3 leading-relaxed text-gray-600">{benefit.description}</p>
+            </motion.article>
           ))}
         </div>
       </div>

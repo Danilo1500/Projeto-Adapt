@@ -10,23 +10,30 @@ interface BasicInfoStepProps {
   formData: JobData;
   setFormData: (data: JobData) => void;
   onNext: () => void;
+  companyLoading?: boolean;
 }
 
-export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepProps) {
+export function BasicInfoStep({ formData, setFormData, onNext, companyLoading = false }: BasicInfoStepProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[required]').forEach((field) => {
+      field.setCustomValidity(field.value.trim() ? '' : 'Preencha este campo.');
+    });
+    if (!form.reportValidity()) return;
     onNext();
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="text-gray-900 mb-6">Informações básicas da vaga</h2>
+      <h2 className="mb-6 text-gray-900 dark:text-slate-100">Informações básicas da vaga</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
           <Label htmlFor="title">Título da vaga *</Label>
           <Input
             id="title"
+            maxLength={160}
             placeholder="Ex: Técnico de Redes Pleno"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -41,10 +48,14 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
             id="company"
             placeholder="Nome da sua empresa"
             value={formData.company}
-            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+            readOnly
+            aria-describedby="company-help"
+            className="mt-2 bg-gray-100 dark:bg-slate-800"
             required
-            className="mt-2"
           />
+          <p id="company-help" className="mt-1 text-xs text-gray-500">
+            {companyLoading ? 'Carregando empresa…' : formData.company ? 'Empresa vinculada à sua conta.' : 'Cadastre ou sincronize sua empresa antes de publicar uma vaga.'}
+          </p>
         </div>
       </div>
 
@@ -53,6 +64,7 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
           <Label htmlFor="location">Localização *</Label>
           <Input
             id="location"
+            maxLength={160}
             placeholder="Ex: São Paulo - SP"
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
@@ -70,7 +82,7 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
             <SelectTrigger id="contractType" className="mt-2">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-white">
+              <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100">
               <SelectItem value="Tempo Integral">Tempo integral</SelectItem>
               <SelectItem value="Meio Período">Meio período</SelectItem>
               <SelectItem value="Freelance">Freelance</SelectItem>
@@ -83,69 +95,22 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <Label htmlFor="experienceLevel">Nível de experiência *</Label>
-          <Select
-            value={formData.experienceLevel}
-            onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}
-          >
-            <SelectTrigger id="experienceLevel" className="mt-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              <SelectItem value="Júnior (0-2 anos)">Júnior (0-2 anos)</SelectItem>
-              <SelectItem value="Pleno (2-5 anos)">Pleno (2-5 anos)</SelectItem>
-              <SelectItem value="Sênior (5+ anos)">Sênior (5+ anos)</SelectItem>
-            </SelectContent>
+          <Label htmlFor="workMode">Modalidade de trabalho *</Label>
+          <Select value={formData.workMode} onValueChange={(value) => setFormData({ ...formData, workMode: value as JobData['workMode'], isRemote: value === 'remote' })}>
+            <SelectTrigger id="workMode" className="mt-2"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100"><SelectItem value="onsite">Presencial</SelectItem><SelectItem value="hybrid">Híbrido</SelectItem><SelectItem value="remote">Remoto</SelectItem></SelectContent>
           </Select>
         </div>
-
         <div>
-          <Label>Salário</Label>
-          <div className="flex items-center gap-3 mt-2">
-            <Select
-              value={formData.currency}
-              onValueChange={(value) => setFormData({ ...formData, currency: value })}
-            >
-              <SelectTrigger className="w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="R$">R$</SelectItem>
-                <SelectItem value="US$">US$</SelectItem>
-                <SelectItem value="€">€</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              placeholder="Mín"
-              value={formData.salaryMin}
-              onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
-              className="flex-1"
-            />
-            <span className="text-gray-500">até</span>
-            <Input
-              placeholder="Máx"
-              value={formData.salaryMax}
-              onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
-              className="flex-1"
-            />
-          </div>
+          <Label htmlFor="experienceLevel">Nível de experiência *</Label>
+          <Select value={formData.experienceLevel} onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}>
+            <SelectTrigger id="experienceLevel" className="mt-2"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100"><SelectItem value="Estágio">Estágio</SelectItem><SelectItem value="Aprendiz">Aprendiz</SelectItem><SelectItem value="Trainee">Trainee</SelectItem><SelectItem value="Júnior (0-2 anos)">Júnior (0-2 anos)</SelectItem><SelectItem value="Pleno (2-5 anos)">Pleno (2-5 anos)</SelectItem><SelectItem value="Sênior (5+ anos)">Sênior (5+ anos)</SelectItem></SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div className="flex items-center gap-6 mb-8">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="remote"
-            checked={formData.isRemote}
-            onCheckedChange={(checked) =>
-              setFormData({ ...formData, isRemote: checked as boolean })
-            }
-          />
-          <Label htmlFor="remote" className="cursor-pointer">
-            Trabalho remoto
-          </Label>
-        </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="flex items-center space-x-2">
           <Checkbox
             id="urgent"
@@ -158,6 +123,19 @@ export function BasicInfoStep({ formData, setFormData, onNext }: BasicInfoStepPr
             Vaga urgente
           </Label>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto_1fr] items-center gap-2 mb-8">
+        <Label htmlFor="salaryMin">Salário (opcional)</Label>
+        <div className="flex items-center gap-2">
+          <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+            <SelectTrigger id="currency" className="w-20"><SelectValue /></SelectTrigger>
+          <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100"><SelectItem value="R$">R$</SelectItem><SelectItem value="US$">US$</SelectItem><SelectItem value="€">€</SelectItem></SelectContent>
+          </Select>
+          <Input id="salaryMin" placeholder="Mínimo" inputMode="decimal" maxLength={15} value={formData.salaryMin} onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })} />
+        </div>
+        <span className="text-gray-500">até</span>
+        <Input id="salaryMax" aria-label="Salário máximo" placeholder="Máximo" inputMode="decimal" maxLength={15} value={formData.salaryMax} onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })} />
       </div>
 
       <div className="flex justify-end">

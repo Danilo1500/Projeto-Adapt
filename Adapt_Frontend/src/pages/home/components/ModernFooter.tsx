@@ -1,76 +1,56 @@
-import { Instagram, Linkedin, Twitter, Mail } from "lucide-react";
+import { Instagram, Linkedin, Mail } from "lucide-react";
+import { Logo } from "./Logo";
 
 export function ModernFooter() {
   const footerSections = [
     {
-      title: "Plataforma",
-      links: ["Como Funciona", "Vagas", "Empresas", "Preços", "Blog"],
+      title: "Produto",
+      links: ["Como funciona", "Benefícios", "Vagas", "Empresas"],
     },
     {
-      title: "Recursos",
-      links: ["Ajuda", "FAQ", "Termos de Uso", "Privacidade", "Contato"],
+      title: "Conta",
+      links: ["Entrar", "Criar perfil", "Publicar vaga", "Suporte"],
     },
     {
-      title: "Empresa",
-      links: ["Sobre Nós", "Carreiras", "Imprensa", "Parceiros", "Investidores"],
+      title: "Legal",
+      links: ["Termos de uso", "Privacidade", "Cookies", "Contato"],
     },
   ];
 
   return (
-    <footer className="bg-gray-900 text-white pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
-          {/* Brand section */}
+    <footer className="bg-white py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 border-b border-gray-200 pb-10 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-[#4600ff] h-12 w-12 rounded-xl flex items-center justify-center">
-                <span className="text-white text-xl font-black">TI</span>
-              </div>
-              <span className="text-2xl font-black text-white">ADAPT</span>
-            </div>
-            <p className="text-gray-400 mb-6 leading-relaxed">
-              A plataforma que conecta os melhores profissionais de tecnologia 
-              com as empresas mais inovadoras do mercado.
+            <Logo className="h-11 w-auto" />
+            <p className="mt-5 max-w-sm leading-relaxed text-gray-600">
+              A rede profissional para conectar talentos de tecnologia, empresas e oportunidades com mais contexto.
             </p>
-            <div className="flex gap-4">
-              <a
-                href="#"
-                className="bg-gray-800 hover:bg-[#4600ff] text-white size-10 rounded-lg flex items-center justify-center transition-colors duration-300"
-              >
-                <Instagram className="size-5" />
-              </a>
-              <a
-                href="#"
-                className="bg-gray-800 hover:bg-[#4600ff] text-white size-10 rounded-lg flex items-center justify-center transition-colors duration-300"
-              >
-                <Linkedin className="size-5" />
-              </a>
-              <a
-                href="#"
-                className="bg-gray-800 hover:bg-[#4600ff] text-white size-10 rounded-lg flex items-center justify-center transition-colors duration-300"
-              >
-                <Twitter className="size-5" />
-              </a>
-              <a
-                href="#"
-                className="bg-gray-800 hover:bg-[#4600ff] text-white size-10 rounded-lg flex items-center justify-center transition-colors duration-300"
-              >
-                <Mail className="size-5" />
-              </a>
+            <div className="mt-6 flex gap-3">
+              {[
+                { icon: <Instagram className="size-5" />, label: "Instagram" },
+                { icon: <Linkedin className="size-5" />, label: "LinkedIn" },
+                { icon: <Mail className="size-5" />, label: "Email" },
+              ].map((item) => (
+                <a
+                  key={item.label}
+                  href="#"
+                  aria-label={item.label}
+                  className="flex size-10 items-center justify-center rounded-lg bg-gray-100 text-gray-700 transition-colors hover:bg-[#4600ff] hover:text-white"
+                >
+                  {item.icon}
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Links sections */}
-          {footerSections.map((section, index) => (
-            <div key={index}>
-              <h3 className="font-bold text-lg mb-4">{section.title}</h3>
-              <ul className="space-y-3">
-                {section.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
-                    <a
-                      href="#"
-                      className="text-gray-400 hover:text-[#4600ff] transition-colors duration-200"
-                    >
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h3 className="font-black text-gray-950">{section.title}</h3>
+              <ul className="mt-4 space-y-3">
+                {section.links.map((link) => (
+                  <li key={link}>
+                    <a href="#" className="text-gray-600 transition-colors hover:text-[#4600ff]">
                       {link}
                     </a>
                   </li>
@@ -80,24 +60,9 @@ export function ModernFooter() {
           ))}
         </div>
 
-        {/* Bottom section */}
-        <div className="pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-400 text-sm">
-              © 2025 ADAPT TI. Todos os direitos reservados.
-            </p>
-            <div className="flex gap-6 text-sm">
-              <a href="#" className="text-gray-400 hover:text-[#4600ff] transition-colors duration-200">
-                Termos de Serviço
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#4600ff] transition-colors duration-200">
-                Política de Privacidade
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#4600ff] transition-colors duration-200">
-                Cookies
-              </a>
-            </div>
-          </div>
+        <div className="flex flex-col justify-between gap-4 pt-8 text-sm text-gray-500 md:flex-row md:items-center">
+          <p>© 2026 ADAPT TI. Todos os direitos reservados.</p>
+          <p>Feito para aproximar pessoas, times e tecnologia.</p>
         </div>
       </div>
     </footer>

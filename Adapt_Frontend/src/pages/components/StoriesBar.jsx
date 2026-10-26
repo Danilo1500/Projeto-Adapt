@@ -98,7 +98,7 @@ const StoriesBar = () => {
                             isDark ? 'ring-slate-700' : 'ring-gray-100'
                         }`} 
                     />
-                    <p className='absolute top-16 left-3 text-white/60 text-sm truncate max-w-24'>{story.content}</p>
+                    <p data-i18n-ignore className='absolute top-16 left-3 text-white/60 text-sm truncate max-w-24'>{story.content}</p>
                     <p className='text-white absolute bottom-1 right-2 z-10 text-xs'>{moment(story.createdAt).fromNow()}</p>
 
                     {story.media_type !== 'text' && (

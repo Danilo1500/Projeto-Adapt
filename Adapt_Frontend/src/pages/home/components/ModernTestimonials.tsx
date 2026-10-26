@@ -1,97 +1,65 @@
 import { motion } from "framer-motion";
-import { Star, Quote } from "lucide-react";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { Quote, Star } from "lucide-react";
 
 export function ModernTestimonials() {
   const testimonials = [
     {
-      name: "Ana Silva",
+      name: "Marina Costa",
       role: "Desenvolvedora Full Stack",
-      company: "Tech Solutions",
-      content: "O ADAPT transformou minha carreira! Em apenas 2 semanas consegui 5 entrevistas e aceitei uma proposta incrível. A plataforma é intuitiva e as empresas são de alta qualidade.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
+      content: "O ADAPT deixou minhas experiências muito mais visíveis. As conversas que chegaram tinham relação real com meu perfil.",
     },
     {
-      name: "Carlos Mendes",
-      role: "Gerente de Tecnologia",
-      company: "Innovation Corp",
-      content: "Contratamos 3 desenvolvedores através do ADAPT e todos superaram nossas expectativas. O sistema de match é realmente eficiente e nos economizou meses de recrutamento.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400",
+      name: "Rafael Nunes",
+      role: "Tech Recruiter",
+      content: "Conseguimos entender aderência antes da primeira entrevista. Isso reduziu retrabalho e melhorou a conversa com o time técnico.",
     },
     {
-      name: "Maria Santos",
-      role: "Data Scientist",
-      company: "AI Labs",
-      content: "Plataforma excepcional! Me ajudou a encontrar exatamente o tipo de desafio que procurava. O processo foi transparente do início ao fim.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400",
+      name: "Bianca Torres",
+      role: "Product Designer",
+      content: "Gostei de encontrar vagas e conexões no mesmo ambiente. A plataforma deixa o processo menos frio e mais objetivo.",
     },
   ];
 
   return (
-    <section id="testimonials" className="py-20 bg-white relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-1/4 right-0 w-96 h-96 bg-purple-300/10 rounded-full blur-3xl" />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section id="testimonials" className="bg-[#f7f9fc] py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.5 }}
+          className="mx-auto mb-12 max-w-3xl text-center"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
-            O que dizem sobre nós
+          <p className="mb-3 text-sm font-black uppercase text-[#4600ff]">Resultados</p>
+          <h2 className="text-4xl font-black leading-tight text-gray-950 md:text-5xl">
+            Mais clareza para quem busca vaga e para quem contrata.
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Histórias reais de profissionais e empresas que transformaram seus resultados
-          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
+            <motion.article
+              key={testimonial.name}
+              initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-shadow duration-300 relative"
+              transition={{ duration: 0.45, delay: index * 0.08 }}
+              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
             >
-              {/* Quote icon */}
-              <div className="absolute top-6 right-6 text-[#4600ff]/10">
-                <Quote className="size-12" fill="currentColor" />
-              </div>
-
-              {/* Rating */}
-              <div className="flex gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="size-5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-
-              {/* Content */}
-              <p className="text-gray-700 mb-6 leading-relaxed relative z-10">
-                "{testimonial.content}"
-              </p>
-
-              {/* Author */}
-              <div className="flex items-center gap-4">
-                <ImageWithFallback
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="size-14 rounded-full object-cover"
-                />
-                <div>
-                  <p className="font-bold text-gray-900">{testimonial.name}</p>
-                  <p className="text-sm text-gray-600">{testimonial.role}</p>
-                  <p className="text-sm text-[#4600ff]">{testimonial.company}</p>
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex gap-1 text-amber-400">
+                  {[...Array(5)].map((_, starIndex) => (
+                    <Star key={starIndex} className="size-4 fill-current" />
+                  ))}
                 </div>
+                <Quote className="size-8 text-[#4600ff]/20" />
               </div>
-            </motion.div>
+              <p className="leading-relaxed text-gray-700">"{testimonial.content}"</p>
+              <div className="mt-8 border-t border-gray-100 pt-5">
+                <p className="font-black text-gray-950">{testimonial.name}</p>
+                <p className="text-sm text-gray-500">{testimonial.role}</p>
+              </div>
+            </motion.article>
           ))}
         </div>
       </div>

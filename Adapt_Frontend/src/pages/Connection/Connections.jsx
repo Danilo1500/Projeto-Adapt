@@ -135,9 +135,9 @@ const Connections = () => {
                 className='rounded-full w-12 h-12 shadow-md mx-auto'
               />
               <div className='flex-1'>
-                <p className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>{user.full_name}</p>
-                <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>@{user.username}</p>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{user.bio.slice(0, 30)}...</p>
+                <p data-i18n-ignore className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>{user.full_name}</p>
+                <p data-i18n-ignore className={isDark ? 'text-slate-400' : 'text-slate-500'}>@{user.username}</p>
+                <p data-i18n-ignore className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{user.bio.slice(0, 30)}...</p>
 
                 <div className='flex max-sm:flex-col gap-2 mt-4'>
                   <button

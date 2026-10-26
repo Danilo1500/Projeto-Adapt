@@ -1,8 +1,9 @@
 ﻿import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { Briefcase, Plus, MapPin, Building2, Clock, DollarSign, Trash2 } from 'lucide-react';
+import { Briefcase, Plus, MapPin, Building2, Clock, DollarSign, Trash2, Pencil } from 'lucide-react';
 import { JobData } from '../JobCreation';
+import { useLanguage } from '../../../context/Language.js';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,8 +25,10 @@ interface JobsListViewProps {
 }
 
 export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoading = false }: JobsListViewProps) {
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('pt-BR', {
+  const { locale } = useLanguage();
+  const formatDate = (date?: Date) => {
+    if (!date || Number.isNaN(date.getTime())) return '—';
+    return new Intl.DateTimeFormat(locale, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -33,18 +36,18 @@ export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoad
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 dark:bg-slate-950">
       {/* Header */}
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-2xl shadow p-6">
+        <div className="rounded-2xl bg-white p-6 shadow dark:bg-slate-900">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="bg-indigo-50 rounded-full w-12 h-12 flex items-center justify-center">
                 <Briefcase className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h1 className="text-gray-900">Vagas da empresa</h1>
-                <p className="text-gray-500 text-sm">
+                <h1 className="text-gray-900 dark:text-slate-100">Vagas da empresa</h1>
+                <p className="text-sm text-gray-500 dark:text-slate-300">
                   Gerencie vagas de emprego para profissionais de tecnologia
                 </p>
               </div>
@@ -66,13 +69,13 @@ export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoad
         {isLoading ? (
           <Card className="p-10 text-center">
             <Briefcase className="w-14 h-14 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600">Carregando vagas...</p>
+            <p className="text-gray-600 dark:text-slate-300">Carregando vagas...</p>
           </Card>
         ) : jobs.length === 0 ? (
           <Card className="p-10 text-center">
             <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-gray-900 mb-2">Nenhuma vaga publicada</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="mb-2 text-gray-900 dark:text-slate-100">Nenhuma vaga cadastrada</h3>
+            <p className="mb-6 text-gray-600 dark:text-slate-300">
               Comece criando sua primeira vaga de emprego
             </p>
             <Button onClick={onCreateNew} className="bg-indigo-600 hover:bg-indigo-700">
@@ -93,7 +96,7 @@ export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoad
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-start gap-3 mb-3">
-                        <h3 className="text-gray-900">{job.title}</h3>
+                        <h3 data-i18n-ignore className="text-gray-900 dark:text-slate-100">{job.title}</h3>
                         {job.status === 'draft' && (
                           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
                             Rascunho
@@ -104,54 +107,45 @@ export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoad
                             Urgente
                           </Badge>
                         )}
-                        {job.isRemote && (
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                            Remoto
-                          </Badge>
-                        )}
+                        {(job.workMode === 'remote' || job.isRemote) && <Badge variant="secondary" className="bg-blue-100 text-blue-700">Remoto</Badge>}
+                        {job.workMode === 'hybrid' && <Badge variant="secondary" className="bg-violet-100 text-violet-700">Híbrido</Badge>}
                       </div>
 
-                      <div className="flex items-center gap-2 text-gray-600 mb-4">
+                      <div className="mb-4 flex items-center gap-2 text-gray-600 dark:text-slate-300">
                         <Building2 className="w-4 h-4" />
-                        <span>{job.company}</span>
+                        <span data-i18n-ignore>{job.company}</span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm dark:text-slate-300">
                           <MapPin className="w-4 h-4" />
-                          <span>{job.location}</span>
+                          <span data-i18n-ignore>{job.location}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm dark:text-slate-300">
                           <Clock className="w-4 h-4" />
-                          <span>{job.contractType}</span>
+                          <span data-i18n-ignore>{job.contractType}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm dark:text-slate-300">
                           <Briefcase className="w-4 h-4" />
-                          <span>{job.experienceLevel}</span>
+                          <span data-i18n-ignore>{job.experienceLevel}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-900 text-sm">
+                        <div className="flex items-center gap-2 text-gray-900 text-sm dark:text-slate-100">
                           <DollarSign className="w-4 h-4 text-green-600" />
                           <span>{salaryRange}</span>
                         </div>
                       </div>
 
-                      <p className="text-gray-700 mb-4 line-clamp-2">{job.description}</p>
+                      <p data-i18n-ignore className="text-gray-700 mb-4 line-clamp-2">{job.description}</p>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>Publicado em {formatDate(job.createdAt!)}</span>
+                      <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-slate-400">
+                        <span>Publicado em {formatDate(job.createdAt)}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {job.status === 'draft' && (
-                        <Button
-                          variant="outline"
-                          className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                          onClick={() => onEditJob(job)}
-                        >
-                          Continuar
-                        </Button>
-                      )}
+                      <Button variant="outline" aria-label={job.status === 'draft' ? 'Continuar edição da vaga' : 'Editar vaga'} className="border-indigo-200 text-indigo-700 hover:bg-indigo-50" onClick={() => onEditJob(job)}>
+                        <Pencil className="mr-1 h-4 w-4" /> {job.status === 'draft' ? 'Continuar' : 'Editar'}
+                      </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -166,7 +160,7 @@ export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoad
                           <AlertDialogHeader>
                             <AlertDialogTitle>Excluir vaga?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. A vaga "{job.title}" será
+                              Esta ação não pode ser desfeita. A vaga "<span data-i18n-ignore>{job.title}</span>" será
                               permanentemente removida.
                             </AlertDialogDescription>
                           </AlertDialogHeader>

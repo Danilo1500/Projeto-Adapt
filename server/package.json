@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "server": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --input-type=module -e \"await import('./services/aiJobMatcher.test.js'); await import('./controllers/jobController.test.js')\""
   },
   "keywords": [],
   "author": "",

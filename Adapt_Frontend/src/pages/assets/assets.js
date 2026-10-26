@@ -3,7 +3,7 @@ import sample_cover from './sample_cover.jpg'
 import sample_profile from './my_perfil.png'
 import bgImage from './bgImage.png'
 import group_users from './group_users.png'
-import { Home, MessageCircle, Search, UserIcon, Users, Briefcase, Building2 } from 'lucide-react'
+import { Home, MessageCircle, Search, UserIcon, Users, Briefcase, Building2, GraduationCap } from 'lucide-react'
 import sponsored_img from './sponsored_img.png'
 
 export const assets = {
@@ -20,6 +20,7 @@ export const menuItemsData = [
     { to: '/messages', label: 'Messages', Icon: MessageCircle },
     { to: '/connections', label: 'Connections', Icon: Users },
     { to: '/discover', label: 'Discover', Icon: Search },
+    { to: '/learning-path', label: 'Evolua seu portfólio', Icon: GraduationCap },
     { to: '/profile', label: 'Profile', Icon: UserIcon },
     { to: '/company', label: 'CompanyProfile', Icon: Building2 },
 ];

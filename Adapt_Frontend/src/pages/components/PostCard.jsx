@@ -149,10 +149,10 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
           />
           <div>
             <div className="flex items-center space-x-1">
-              <span>{post.user.full_name}</span>
+              <span data-i18n-ignore>{post.user.full_name}</span>
               <BadgeCheck className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="text-gray-500 text-sm">
+            <div className="text-gray-500 text-sm" data-i18n-ignore>
               @{post.user.username} • {moment(post.createdAt).fromNow()}
             </div>
           </div>
@@ -172,7 +172,7 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
 
       {/* content */}
       {post.content && 
-        <div className="text-gray-800 text-sm whitespace-normal" dangerouslySetInnerHTML={{ __html: postWithHashtags }}/>}
+        <div data-i18n-ignore className="text-gray-800 text-sm whitespace-normal" dangerouslySetInnerHTML={{ __html: postWithHashtags }}/>} 
 
         {/* images */}
         <div className="grid grid-cols-2 gap-2">
@@ -241,11 +241,11 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
                     />
                     <div className="bg-gray-50 rounded-lg px-3 py-2 flex-1">
                       <div className="text-xs text-gray-600">
-                        <span className="font-medium text-gray-800">{comment.user?.full_name}</span>
+                        <span className="font-medium text-gray-800" data-i18n-ignore>{comment.user?.full_name}</span>
                         <span className="ml-1">@{comment.user?.username}</span>
                         <span className="ml-2 text-gray-400">{moment(comment.createdAt).fromNow()}</span>
                       </div>
-                      <p className="text-sm text-gray-800 mt-1 whitespace-pre-wrap">{comment.content}</p>
+                      <p className="text-sm text-gray-800 mt-1 whitespace-pre-wrap" data-i18n-ignore>{comment.content}</p>
                     </div>
                   </div>
                 ))}

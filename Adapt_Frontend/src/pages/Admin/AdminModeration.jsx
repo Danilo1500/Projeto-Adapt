@@ -364,12 +364,12 @@ const AdminModeration = () => {
                 <div className="flex items-center gap-3">
                   <img src={post.user?.profile_picture || "https://placehold.co/48x48"} alt="" className="h-10 w-10 rounded-full object-cover" />
                   <div className="min-w-0 flex-1">
-                    <p className={`truncate font-medium ${isDark ? "text-slate-100" : "text-slate-900"}`}>{post.user?.full_name || "Usuario"}</p>
+                    <p data-i18n-ignore className={`truncate font-medium ${isDark ? "text-slate-100" : "text-slate-900"}`}>{post.user?.full_name || "Usuario"}</p>
                     <p className={`text-xs ${mutedClass}`}>{moment(post.createdAt).fromNow()}</p>
                   </div>
                   <ItemActions type="posts" item={post} />
                 </div>
-                {post.content && <p className={`mt-3 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{post.content}</p>}
+                {post.content && <p data-i18n-ignore className={`mt-3 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{post.content}</p>}
                 {Array.isArray(post.image_urls) && post.image_urls.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {post.image_urls.slice(0, 3).map((url, idx) => (
@@ -391,14 +391,14 @@ const AdminModeration = () => {
                 <div className="flex items-center gap-3">
                   <img src={story.user?.profile_picture || "https://placehold.co/48x48"} alt="" className="h-10 w-10 rounded-full object-cover" />
                   <div className="min-w-0 flex-1">
-                    <p className={`truncate font-medium ${isDark ? "text-slate-100" : "text-slate-900"}`}>{story.user?.full_name || "Usuario"}</p>
+                    <p data-i18n-ignore className={`truncate font-medium ${isDark ? "text-slate-100" : "text-slate-900"}`}>{story.user?.full_name || "Usuario"}</p>
                     <p className={`text-xs ${mutedClass}`}>{story.media_type} - {moment(story.createdAt).fromNow()}</p>
                   </div>
                   <ItemActions type="stories" item={story} />
                 </div>
                 {story.media_type === "image" && story.media_url && <img src={story.media_url} alt="" className="mt-3 h-32 rounded-md object-cover" />}
                 {story.media_type === "video" && story.media_url && <video src={story.media_url} className="mt-3 h-32 rounded-md object-cover" controls />}
-                {story.content && <p className={`mt-3 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{story.content}</p>}
+                {story.content && <p data-i18n-ignore className={`mt-3 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{story.content}</p>}
                 <EditPanel type="stories" itemId={story._id} />
               </div>
             ))}
@@ -440,7 +440,7 @@ const AdminModeration = () => {
                           </div>
                           <ItemActions type="messages" item={message} />
                         </div>
-                        {message.text && <p className={`mt-2 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{message.text}</p>}
+                        {message.text && <p data-i18n-ignore className={`mt-2 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{message.text}</p>}
                         {message.media_url && <img src={message.media_url} alt="" className="mt-3 h-32 rounded-md object-cover" />}
                         <EditPanel type="messages" itemId={message._id} />
                       </div>

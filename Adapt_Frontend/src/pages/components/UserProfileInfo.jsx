@@ -21,10 +21,10 @@ const UserProfileInfo = ({ user, posts, profileId, setShowEdit }) => {
           <div className="flex flex-col md:flex-row items-start justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">{user.full_name}</h1>
+                <h1 data-i18n-ignore className="text-2xl font-bold text-gray-900">{user.full_name}</h1>
                 <Verified className="w-6 h-6 text-blue-500" />
               </div>
-              <p className="text-gray-600">
+              <p data-i18n-ignore className="text-gray-600">
                 {user.username ? `@${user.username}` : 'Add a username'}
               </p>
             </div>
@@ -35,12 +35,12 @@ const UserProfileInfo = ({ user, posts, profileId, setShowEdit }) => {
                     Edit
                 </button>}
           </div>
-          <p className='text-gray-700 text-sm max-w-md mt-4'>{user.bio}</p>
+          <p data-i18n-ignore className='text-gray-700 text-sm max-w-md mt-4'>{user.bio}</p>
 
           <div className='flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 mt-4'>
             <span className='flex items-center gap-1.5'>
                 <MapPin className='w-4 h-4'/>
-                {user.location ? user.location : 'Add location'}
+                {user.location ? <span data-i18n-ignore>{user.location}</span> : 'Add location'}
             </span>
             <span className='flex items-center gap-1.5'>
                 <Calendar className='w-4 h-4'/>
