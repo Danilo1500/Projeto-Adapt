@@ -14,10 +14,14 @@ import {
   adminUpdateStory,
   adminUpdateMessage,
   adminUpdateJob,
+  getFeedbackReport,
+  exportFeedbackReport,
 } from "../controllers/adminController.js";
 
 const adminRouter = express.Router();
 
+adminRouter.get("/feedback/export", protect, requireAdmin, exportFeedbackReport);
+adminRouter.get("/feedback", protect, requireAdmin, getFeedbackReport);
 adminRouter.get("/posts", protect, requireAdmin, getAllPosts);
 adminRouter.get("/stories", protect, requireAdmin, getAllStories);
 adminRouter.get("/messages", protect, requireAdmin, getAllMessages);

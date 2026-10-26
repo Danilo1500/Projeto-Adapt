@@ -2,12 +2,61 @@ import Post from "../models/Post.js";
 import Story from "../models/Story.js";
 import Message from "../models/Message.js";
 import Job from "../models/Job.js";
+import Feedback from "../models/Feedback.js";
 
 const parsePagination = (req) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
   const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
   const skip = (page - 1) * limit;
   return { limit, page, skip };
+};
+
+export const getFeedbackReport = async (req, res) => {
+  try {
+    const { limit, page, skip } = parsePagination(req);
+    const [feedbacks, total] = await Promise.all([
+      Feedback.find({})
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Feedback.countDocuments(),
+    ]);
+
+    return res.json({ success: true, feedbacks, total, page, limit });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const csvCell = (value) => {
+  const text = String(value ?? "");
+  const safeText = /^[\s]*[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return `"${safeText.replaceAll('"', '""')}"`;
+};
+
+export const exportFeedbackReport = async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find({}).sort({ createdAt: -1 }).lean();
+    const rows = [
+      ["Data", "Nome", "E-mail", "Feedback"],
+      ...feedbacks.map((feedback) => [
+        feedback.createdAt?.toISOString() || "",
+        feedback.senderName,
+        feedback.senderEmail,
+        feedback.message,
+      ]),
+    ];
+    const csv = `\uFEFF${rows.map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
+
+    res.set({
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": 'attachment; filename="feedback-report.csv"',
+    });
+    return res.send(csv);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 export const getAllPosts = async (req, res) => {

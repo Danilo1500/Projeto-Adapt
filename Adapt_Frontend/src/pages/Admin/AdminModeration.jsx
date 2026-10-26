@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import moment from "moment";
 import { useAuth } from "@clerk/clerk-react";
+import { Download } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../api/axios";
 import { useTheme } from "../../context/ThemeContext";
@@ -11,6 +12,7 @@ const tabs = [
   { id: "stories", label: "Stories" },
   { id: "messages", label: "Mensagens" },
   { id: "jobs", label: "Vagas" },
+  { id: "feedback", label: "Feedbacks" },
 ];
 
 const emptyEdit = { type: null, id: null, values: {} };
@@ -25,6 +27,11 @@ const AdminModeration = () => {
   const [stories, setStories] = useState([]);
   const [messages, setMessages] = useState([]);
   const [jobs, setJobs] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbackTotal, setFeedbackTotal] = useState(0);
+  const [feedbackPage, setFeedbackPage] = useState(1);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [exportingFeedback, setExportingFeedback] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(emptyEdit);
@@ -96,6 +103,41 @@ const AdminModeration = () => {
       toast.error(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFeedbackReport = async () => {
+    try {
+      setFeedbackLoading(true);
+      const data = await authedGet(`/api/admin/feedback?page=${feedbackPage}&limit=20`);
+      setFeedbacks(data.feedbacks || []);
+      setFeedbackTotal(data.total || 0);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  const exportFeedbackReport = async () => {
+    try {
+      setExportingFeedback(true);
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.get("/api/admin/feedback/export", { headers, responseType: "blob" })
+      );
+      const downloadUrl = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = "feedback-report.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message || "Não foi possível exportar o relatório.");
+    } finally {
+      setExportingFeedback(false);
     }
   };
 
@@ -180,6 +222,10 @@ const AdminModeration = () => {
   useEffect(() => {
     loadAll();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "feedback") loadFeedbackReport();
+  }, [activeTab, feedbackPage]);
 
   const ItemActions = ({ type, item }) => (
       <div className="flex items-center gap-2">
@@ -472,6 +518,82 @@ const AdminModeration = () => {
               </div>
             ))}
           </div>
+        )}
+
+        {!loading && activeTab === "feedback" && (
+          <section className="mt-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className={`text-xl font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+                  Relatório de feedbacks
+                </h2>
+                <p className={`text-sm ${mutedClass}`}>
+                  {feedbackTotal} feedbacks registrados
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={exportFeedbackReport}
+                disabled={exportingFeedback}
+                className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Download className="h-4 w-4" />
+                {exportingFeedback ? "Exportando..." : "Exportar CSV"}
+              </button>
+            </div>
+
+            {feedbackLoading ? (
+              <div className={bodyTextClass}>Carregando feedbacks...</div>
+            ) : feedbacks.length === 0 ? (
+              <div className={cardClass}>Nenhum feedback registrado ainda.</div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-4">
+                  {feedbacks.map((feedback) => (
+                    <article key={feedback._id} className={cardClass}>
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className={`font-medium ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+                            {feedback.senderName}
+                          </p>
+                          <p className={`text-sm ${mutedClass}`}>{feedback.senderEmail || "E-mail não informado"}</p>
+                        </div>
+                        <div className={`text-right text-xs ${mutedClass}`}>
+                          <p>{moment(feedback.createdAt).format("DD/MM/YYYY HH:mm")}</p>
+                        </div>
+                      </div>
+                      <p className={`mt-3 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{feedback.message}</p>
+                    </article>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackPage((page) => Math.max(1, page - 1))}
+                    disabled={feedbackPage <= 1 || feedbackLoading}
+                    className={`rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+                      isDark ? "border-slate-700 text-slate-200" : "border-gray-300 text-gray-700"
+                    }`}
+                  >
+                    Anterior
+                  </button>
+                  <span className={`text-sm ${mutedClass}`}>
+                    Página {feedbackPage} de {Math.max(1, Math.ceil(feedbackTotal / 20))}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackPage((page) => page + 1)}
+                    disabled={feedbackPage >= Math.ceil(feedbackTotal / 20) || feedbackLoading}
+                    className={`rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+                      isDark ? "border-slate-700 text-slate-200" : "border-gray-300 text-gray-700"
+                    }`}
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </>
+            )}
+          </section>
         )}
       </div>
     </div>
