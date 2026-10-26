@@ -4,8 +4,11 @@ import { assets } from '../assets/assets'
 import { useNavigate, Link } from 'react-router-dom';
 import MenuItems from './MenuItems';
 import { CirclePlus, LogOut, Briefcase, Building2, Settings, Sun, Moon, Languages, MessageSquare, Send, X } from 'lucide-react';
-import { UserButton, useClerk } from '@clerk/clerk-react';
+import { UserButton, useAuth, useClerk } from '@clerk/clerk-react';
 import { useSelector } from 'react-redux';
+import api from '../../api/axios';
+import toast from 'react-hot-toast';
+import { requestWithAuth } from '../../utils/authRequest';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/Language.js';
 
@@ -17,20 +20,36 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const [createOpen, setCreateOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const { getToken } = useAuth();
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   const isEnglish = language === 'en';
 
   const isDark = theme === 'dark';
 
-  const handleFeedbackSubmit = (event) => {
+  const handleFeedbackSubmit = async (event) => {
     event.preventDefault();
+    if (feedbackSubmitting) return;
 
-    const subject = encodeURIComponent(isEnglish ? 'App feedback' : 'Feedback do aplicativo');
-    const body = encodeURIComponent(feedbackMessage.trim());
-    window.location.href = `mailto:resendedanielcouto@gmail.com?subject=${subject}&body=${body}`;
-    setFeedbackOpen(false);
-    setFeedbackMessage('');
+    setFeedbackSubmitting(true);
+    try {
+      const { data } = await requestWithAuth(
+        getToken,
+        (headers) => api.post('/api/user/feedback', { message: feedbackMessage.trim() }, { headers })
+      );
+
+      toast.success(isEnglish ? 'Feedback sent successfully.' : data.message);
+      setFeedbackOpen(false);
+      setFeedbackMessage('');
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+        (isEnglish ? 'Could not send feedback. Please try again.' : 'Não foi possível enviar o feedback. Tente novamente.')
+      );
+    } finally {
+      setFeedbackSubmitting(false);
+    }
   };
 
   return (
@@ -169,11 +188,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               </p>
               <button
                 type='submit'
-                disabled={!feedbackMessage.trim()}
+                disabled={!feedbackMessage.trim() || feedbackSubmitting}
                 className='mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 <Send className='h-4 w-4' />
-                {isEnglish ? 'Continue to email' : 'Continuar para o e-mail'}
+                {feedbackSubmitting
+                  ? (isEnglish ? 'Sending...' : 'Enviando...')
+                  : (isEnglish ? 'Send feedback' : 'Enviar feedback')}
               </button>
             </form>
           </div>,

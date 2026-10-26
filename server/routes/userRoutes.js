@@ -4,9 +4,11 @@ import { protect } from '../middlewares/auth.js';
 import { upload } from '../configs/multer.js';
 import { getUserRecentMessages } from '../controllers/messageController.js';
 import { getLearningRecommendations, updateLearningPreferences, updateLearningProgress } from '../controllers/learningController.js';
+import { sendFeedback } from '../controllers/feedbackController.js';
 
 const userRouter = express.Router();
 
+userRouter.post('/feedback', protect, sendFeedback)
 userRouter.get('/data', protect, getUserData)
 userRouter.post('/update', upload.fields([{ name: 'profile', maxCount: 1}, { name: 'cover', maxCount: 1}, { name: 'resume', maxCount: 1}]), protect, updateUserData)
 userRouter.post('/discover', protect, discoverUsers)
