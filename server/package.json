@@ -9,7 +9,7 @@
     "start": "node server.js",
     "audit:companies": "node scripts/auditCompanyData.js",
     "migrate:company-members": "node scripts/migrateCompanyMembers.js",
-    "test": "node --input-type=module -e \"process.env.IMAGEKIT_PUBLIC_KEY ||= 'test_public_key'; process.env.IMAGEKIT_PRIVATE_KEY ||= 'test_private_key'; process.env.IMAGEKIT_URL_ENDPOINT ||= 'https://ik.imagekit.io/test'; await import('./services/aiJobMatcher.test.js'); await import('./services/companyAccess.test.js'); await import('./services/companyOwnership.test.js'); await import('./services/companySync.test.js'); await import('./controllers/adminController.test.js'); await import('./controllers/feedbackController.test.js'); await import('./controllers/companyController.test.js'); await import('./controllers/jobController.test.js')\""
+    "test": "node --input-type=module -e \"process.env.IMAGEKIT_PUBLIC_KEY ||= 'test_public_key'; process.env.IMAGEKIT_PRIVATE_KEY ||= 'test_private_key'; process.env.IMAGEKIT_URL_ENDPOINT ||= 'https://ik.imagekit.io/test'; await import('./services/mediaValidation.test.js'); await import('./services/aiJobMatcher.test.js'); await import('./services/companyAccess.test.js'); await import('./services/companyOwnership.test.js'); await import('./services/companySync.test.js'); await import('./controllers/adminController.test.js'); await import('./controllers/feedbackController.test.js'); await import('./controllers/companyController.test.js'); await import('./controllers/jobController.test.js')\""
   },
   "keywords": [],
   "author": "",

@@ -10,7 +10,7 @@ import { useAuth } from '@clerk/clerk-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { requestWithAuth } from '../../utils/authRequest';
-import { useTheme } from '../../context/ThemeContext';
+import './styles/globals.css';
 
 export interface JobData {
   id?: string;
@@ -48,9 +48,6 @@ export default function JobCreation() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const { getToken } = useAuth();
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   const [formData, setFormData] = useState<JobData>({
     title: '',
     company: '',
@@ -340,24 +337,24 @@ export default function JobCreation() {
   const progressPercentage = (currentStep / 3) * 100;
 
   return (
-    <div className={`min-h-screen p-3 sm:p-6 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-gray-50 text-gray-900'}`}>
+    <div className="min-h-screen bg-background p-3 text-foreground sm:p-6">
       {/* Header */}
       <div className="max-w-5xl mx-auto">
-        <div className={`rounded-2xl p-4 shadow sm:p-6 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+        <div className="rounded-2xl bg-card p-4 text-card-foreground shadow sm:p-6">
           <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 sm:h-12 sm:w-12">
                 <Briefcase className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h1 className={isDark ? 'text-slate-100' : 'text-gray-900'}>Criar nova vaga</h1>
-                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Encontre os melhores talentos para sua empresa</p>
+                <h1 className="text-card-foreground">Criar nova vaga</h1>
+                <p className="text-sm text-muted-foreground">Encontre os melhores talentos para sua empresa</p>
               </div>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
               <Button
                 variant="ghost"
-                className="text-gray-600 hover:bg-gray-100"
+                className="text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 onClick={handleBack}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -365,7 +362,7 @@ export default function JobCreation() {
               </Button>
               <Button
                 variant="outline"
-                className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                className="border-border text-card-foreground hover:bg-accent hover:text-accent-foreground"
                 onClick={handleSaveDraft}
                 disabled={isSubmitting || companyLoading || !companyName || !selectedCompanyId}
               >
@@ -378,7 +375,7 @@ export default function JobCreation() {
             <label className="mt-4 block text-sm font-medium">
               Empresa responsável pela vaga
               <select
-                className={`mt-1 w-full rounded-lg border px-3 py-2 ${isDark ? 'border-slate-700 bg-slate-800 text-slate-100' : 'border-gray-300 bg-white text-gray-900'}`}
+                className="job-company-select mt-1 w-full rounded-lg border border-border bg-input-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 value={selectedCompanyId}
                 onChange={(event) => void handleCompanySelection(event.target.value)}
                 disabled={companyLoading || isSubmitting}
@@ -391,7 +388,7 @@ export default function JobCreation() {
         </div>
 
         {/* Progress Steps */}
-        <div className={`mt-4 rounded-2xl p-4 shadow sm:mt-6 sm:p-6 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+        <div className="mt-4 rounded-2xl bg-card p-4 text-card-foreground shadow sm:mt-6 sm:p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-y-3">
             {steps.map((step, index) => (
                 <div key={step.number} className="flex min-w-[30%] flex-1 items-center sm:min-w-0">
@@ -400,7 +397,7 @@ export default function JobCreation() {
                     className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
                       currentStep >= step.number
                         ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-200 text-gray-600'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {step.number}
@@ -409,7 +406,7 @@ export default function JobCreation() {
                     className={`${
                       currentStep >= step.number
                         ? 'text-indigo-600'
-                        : 'text-gray-500'
+                        : 'text-muted-foreground'
                     } hidden sm:inline`}
                   >
                     {step.title}
@@ -417,7 +414,7 @@ export default function JobCreation() {
                 </div>
                 {index < steps.length - 1 && (
                   <div className="mx-2 hidden flex-1 sm:block sm:mx-4">
-                    <div className="h-0.5 bg-gray-200 relative">
+                    <div className="relative h-0.5 bg-muted">
                       <div
                         className="h-full bg-indigo-600 transition-all duration-300"
                         style={{
@@ -434,8 +431,8 @@ export default function JobCreation() {
         </div>
 
         {/* Form Content */}
-        <div className={`mt-4 rounded-2xl p-4 shadow sm:mt-6 sm:p-6 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
-          {Object.keys(fieldErrors).length > 0 && <div className="mb-5 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800" role="alert" aria-live="assertive">
+        <div className="mt-4 rounded-2xl bg-card p-4 text-card-foreground shadow sm:mt-6 sm:p-6">
+          {Object.keys(fieldErrors).length > 0 && <div className="mb-5 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive dark:text-red-200" role="alert" aria-live="assertive">
             <p className="font-semibold">Revise os campos abaixo:</p>
             <ul className="mt-2 list-inside list-disc">{Object.entries(fieldErrors).map(([field, message]) => {
               const labels: Record<string, string> = { salaryMin: 'Salário mínimo', salaryMax: 'Salário máximo', requirements: 'Requisitos obrigatórios', desiredRequirements: 'Requisitos desejáveis', workMode: 'Modalidade de trabalho', title: 'Título', location: 'Localização', contractType: 'Tipo de contrato', experienceLevel: 'Nível de experiência', description: 'Descrição' };

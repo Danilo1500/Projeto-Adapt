@@ -4,7 +4,6 @@ import { Badge } from './ui/badge';
 import { Briefcase, Plus, MapPin, Building2, Clock, DollarSign, Trash2, Pencil } from 'lucide-react';
 import { JobData } from '../JobCreation';
 import { useLanguage } from '../../../context/Language.js';
-import { useTheme } from '../../../context/ThemeContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,8 +26,6 @@ interface JobsListViewProps {
 
 export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoading = false }: JobsListViewProps) {
   const { locale } = useLanguage();
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const formatDate = (date?: Date) => {
     if (!date || Number.isNaN(date.getTime())) return '—';
     return new Intl.DateTimeFormat(locale, {
@@ -39,18 +36,18 @@ export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoad
   };
 
   return (
-    <div className={`min-h-screen p-3 sm:p-6 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-gray-50 text-gray-900'}`}>
+    <div className="min-h-screen bg-background p-3 text-foreground sm:p-6">
       {/* Header */}
       <div className="max-w-5xl mx-auto">
-        <div className={`rounded-2xl p-4 shadow sm:p-6 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+        <div className="rounded-2xl bg-card p-4 text-card-foreground shadow sm:p-6">
           <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 sm:h-12 sm:w-12">
                 <Briefcase className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h1 className={isDark ? 'text-slate-100' : 'text-gray-900'}>Vagas da empresa</h1>
-                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>
+                <h1 className="text-card-foreground">Vagas da empresa</h1>
+                <p className="text-sm text-muted-foreground">
                   Gerencie vagas de emprego para profissionais de tecnologia
                 </p>
               </div>
@@ -95,52 +92,52 @@ export function JobsListView({ jobs, onCreateNew, onEditJob, onDeleteJob, isLoad
                   : 'A combinar';
 
               return (
-                <Card key={job.id} className={`min-w-0 p-4 transition-shadow hover:shadow-xl sm:p-6 ${isDark ? 'bg-slate-900 text-slate-100' : 'bg-white text-gray-900'}`}>
+                <Card key={job.id} className="min-w-0 p-4 transition-shadow hover:shadow-xl sm:p-6">
                   <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="mb-3 flex flex-wrap items-start gap-2 sm:gap-3">
-                        <h3 data-i18n-ignore className="text-gray-900 dark:text-slate-100">{job.title}</h3>
+                        <h3 data-i18n-ignore className="text-foreground">{job.title}</h3>
                         {job.status === 'draft' && (
-                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100">
                             Rascunho
                           </Badge>
                         )}
                         {job.isUrgent && (
-                          <Badge variant="secondary" className="bg-red-100 text-red-700">
+                          <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-100">
                             Urgente
                           </Badge>
                         )}
-                        {(job.workMode === 'remote' || job.isRemote) && <Badge variant="secondary" className="bg-blue-100 text-blue-700">Remoto</Badge>}
-                        {job.workMode === 'hybrid' && <Badge variant="secondary" className="bg-violet-100 text-violet-700">Híbrido</Badge>}
+                        {(job.workMode === 'remote' || job.isRemote) && <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-100">Remoto</Badge>}
+                        {job.workMode === 'hybrid' && <Badge variant="secondary" className="bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-100">Híbrido</Badge>}
                       </div>
 
-                      <div className="mb-4 flex items-center gap-2 text-gray-600 dark:text-slate-300">
+                      <div className="mb-4 flex items-center gap-2 text-foreground/80">
                         <Building2 className="w-4 h-4" />
                         <span data-i18n-ignore>{job.company}</span>
                       </div>
 
                       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 sm:gap-4">
-                        <div className="flex items-center gap-2 text-gray-600 text-sm dark:text-slate-300">
+                        <div className="flex items-center gap-2 text-sm text-foreground/80">
                           <MapPin className="w-4 h-4" />
                           <span data-i18n-ignore>{job.location}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600 text-sm dark:text-slate-300">
+                        <div className="flex items-center gap-2 text-sm text-foreground/80">
                           <Clock className="w-4 h-4" />
                           <span data-i18n-ignore>{job.contractType}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600 text-sm dark:text-slate-300">
+                        <div className="flex items-center gap-2 text-sm text-foreground/80">
                           <Briefcase className="w-4 h-4" />
                           <span data-i18n-ignore>{job.experienceLevel}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-900 text-sm dark:text-slate-100">
+                        <div className="flex items-center gap-2 text-sm text-foreground">
                           <DollarSign className="w-4 h-4 text-green-600" />
                           <span>{salaryRange}</span>
                         </div>
                       </div>
 
-                      <p data-i18n-ignore className="text-gray-700 mb-4 line-clamp-2">{job.description}</p>
+                      <p data-i18n-ignore className="mb-4 line-clamp-2 text-foreground/90">{job.description}</p>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-slate-400">
+                      <div className="flex items-center gap-4 text-sm text-foreground/70">
                         <span>Publicado em {formatDate(job.createdAt)}</span>
                       </div>
                     </div>

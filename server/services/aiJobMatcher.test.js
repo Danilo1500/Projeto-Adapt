@@ -5,6 +5,7 @@ import Job from "../models/Job.js";
 import { analyzeSubmittedJob, getJobMatchDetails, getRecommendedJobs } from "../controllers/jobController.js";
 import { buildLearningRecommendations, getLearningRecommendations, updateLearningPreferences, updateLearningProgress } from "../controllers/learningController.js";
 import User from "../models/User.js";
+import { getCourseCatalog } from "./courseCatalog.js";
 
 const makeCandidate = (portfolio = {}) => ({
   bio: "",
@@ -172,6 +173,14 @@ test("external job analysis is authenticated, bounded, and uses only the supplie
   assert.equal(invalid.statusCode, 400);
 });
 
+test("expanded course catalog has unique, complete official HTTPS resources", () => {
+  const catalog = getCourseCatalog();
+  assert.ok(catalog.length >= 20);
+  assert.equal(new Set(catalog.map((course) => course.id)).size, catalog.length);
+  assert.equal(new Set(catalog.map((course) => course.url.trim().replace(/\/$/, ""))).size, catalog.length);
+  assert.ok(catalog.every((course) => course.url.startsWith("https://") && course.platform && course.description && course.project?.title));
+});
+
 test("learning recommendations connect vacancy gaps to a verified course, portfolio project, and explicit progress", () => {
   const user = makeCandidate({ languages: ["JavaScript"] });
   const jobs = [{ _id: "react-role", title: "React developer", company: "Adapt", requirements: ["React", "JavaScript"] }];
@@ -196,6 +205,44 @@ test("learning recommendations cover TypeScript, web foundations, Git, and testi
   assert.ok(result.courses.some((course) => course.id === "typescript-handbook" && course.project.technologies.includes("TypeScript")));
   assert.ok(result.courses.some((course) => course.id === "react-testing-library"));
   assert.ok(result.courses.every((course) => course.url.startsWith("https://") && course.reason && course.project?.title && course.project.technologies.length));
+});
+
+test("learning recommendations do not invent general courses for an empty profile", () => {
+  const user = makeCandidate({ languages: [], libraries: [], frameworks: [] });
+  const result = buildLearningRecommendations(user, []);
+  assert.equal(result.courses.length, 0);
+  assert.equal(result.criteria.recommendationSource, "insufficient-data");
+  assert.deepEqual(result.diagnosis.identifiedSkills, []);
+});
+
+test("different profiles rank different catalog resources", () => {
+  const frontend = buildLearningRecommendations(makeCandidate({ languages: ["JavaScript"], frameworks: ["React"] }), [
+    { _id: "frontend-role", title: "Frontend Engineer", requirements: ["React", "TypeScript", "Testing"] }
+  ]);
+  const backend = buildLearningRecommendations(makeCandidate({ frameworks: [], languages: ["Python", "SQL"], libraries: [] }), [
+    { _id: "backend-role", title: "Backend Engineer", requirements: ["Python", "MongoDB", "Docker"] }
+  ]);
+  const cloud = buildLearningRecommendations(makeCandidate({ frameworks: [], languages: [], libraries: [] }), [
+    { _id: "cloud-role", title: "Cloud Engineer", requirements: ["AWS", "Azure", "Docker"] }
+  ]);
+  assert.ok(frontend.courses.some((course) => course.skills.includes("react") || course.skills.includes("typescript")));
+  assert.ok(backend.courses.some((course) => course.skills.includes("mongodb") || course.skills.includes("docker")));
+  assert.ok(cloud.courses.some((course) => course.skills.includes("aws") || course.skills.includes("azure") || course.skills.includes("docker")));
+  assert.notDeepEqual(frontend.courses.map((course) => course.id), cloud.courses.map((course) => course.id));
+});
+
+test("recommendations have unique course identifiers and URLs", () => {
+  const user = makeCandidate({ languages: ["JavaScript", "HTML", "CSS"], frameworks: ["React"] });
+  const result = buildLearningRecommendations(user, [{ _id: "frontend-role", title: "Frontend Engineer", requirements: ["React", "TypeScript", "Testing", "Docker", "Git"] }]);
+  assert.equal(new Set(result.courses.map((course) => course.id)).size, result.courses.length);
+  assert.equal(new Set(result.courses.map((course) => course.url)).size, result.courses.length);
+});
+
+test("learning recommendations do not repeat courses confirmed as acquired", () => {
+  const user = makeCandidate({ languages: ["JavaScript"] });
+  user.learningProgress = [{ courseId: "react-quick-start", status: "completed", acquiredSkills: ["React"] }];
+  const result = buildLearningRecommendations(user, [{ _id: "react-role", title: "React developer", requirements: ["React"] }]);
+  assert.ok(!result.courses.some((course) => course.id === "react-quick-start"));
 });
 
 test("empty vacancy data still gives a transparent catalog recommendation and can use saved professional goals", () => {

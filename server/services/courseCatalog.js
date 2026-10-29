@@ -61,6 +61,50 @@ const LEARNING_RESOURCES = [
     id: "python-tutorial", skills: ["python"], title: "The Python Tutorial", description: "Tutorial oficial da linguagem para quem já tem noções de programação.", level: "Intermediário para quem está começando em Python", platform: "Python.org", url: "https://docs.python.org/3/tutorial/", cost: "Gratuito", type: "Tutorial oficial",
     project: { title: "Analisador de dados abertos", description: "Crie um pipeline reprodutível que limpa, analisa e apresenta um conjunto de dados público.", technologies: ["Python", "Jupyter", "Pandas"], features: ["Validação de entrada", "Notebook reproduzível", "Visualizações", "README com fonte dos dados"] },
   },
+  {
+    id: "nodejs-guides", skills: ["node.js", "javascript"], title: "Introduction to Node.js", description: "Guia oficial da Node.js Foundation sobre execução de JavaScript no servidor, módulos, testes e ferramentas.", level: "Iniciante a intermediário", platform: "Node.js", url: "https://nodejs.org/en/learn/getting-started/introduction-to-nodejs", cost: "Gratuito", type: "Guias oficiais",
+    project: { title: "API REST com Node.js", description: "Implemente uma API HTTP com rotas, validação, erros, testes e persistência documentada.", technologies: ["Node.js", "JavaScript", "REST"], features: ["Rotas CRUD", "Validação de entrada", "Tratamento de erros", "Testes automatizados"] },
+  },
+  {
+    id: "express-routing", skills: ["node.js", "express"], title: "Express - getting started", description: "Documentação oficial do Express para criar rotas, middlewares e aplicações web com Node.js.", level: "Iniciante", platform: "Express", url: "https://expressjs.com/en/starter/installing.html", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "Servidor de catálogo", description: "Crie um servidor Express com autenticação simulada, rotas REST, middlewares e testes.", technologies: ["Express", "Node.js", "REST"], features: ["Rotas organizadas", "Middleware de validação", "Logs estruturados", "Testes de integração"] },
+  },
+  {
+    id: "rest-mdn", skills: ["rest"], title: "An overview of HTTP", description: "Documentação da MDN sobre mensagens HTTP, métodos, códigos de status, cabeçalhos e semântica web.", level: "Iniciante", platform: "MDN Web Docs / Mozilla", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "Cliente e servidor REST", description: "Documente uma API, implemente recursos CRUD e trate autenticação, respostas e erros HTTP.", technologies: ["HTTP", "REST", "API"], features: ["Métodos semânticos", "Códigos de status", "Validação", "Documentação OpenAPI"] },
+  },
+  {
+    id: "graphql-learn", skills: ["graphql"], title: "Introduction to GraphQL", description: "Introdução oficial ao modelo de consultas GraphQL, schemas, resolvers e execução de operações.", level: "Iniciante a intermediário", platform: "GraphQL Foundation", url: "https://graphql.org/learn/", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "API GraphQL de projetos", description: "Modele consultas e mutations para projetos profissionais, usuários e competências.", technologies: ["GraphQL", "Node.js", "API"], features: ["Schema tipado", "Queries e mutations", "Validação", "Testes de resolvers"] },
+  },
+  {
+    id: "postgresql-tutorial", skills: ["sql", "postgresql"], title: "PostgreSQL Tutorial", description: "Tutorial oficial do PostgreSQL sobre tabelas, consultas, funções, índices e transações.", level: "Iniciante a intermediário", platform: "PostgreSQL", url: "https://www.postgresql.org/docs/current/tutorial.html", cost: "Gratuito", type: "Tutorial oficial",
+    project: { title: "Modelagem de um portfólio profissional", description: "Modele usuários, competências, projetos e vagas relacionais com consultas e migrações documentadas.", technologies: ["PostgreSQL", "SQL"], features: ["Modelo normalizado", "Migrações", "Índices", "Consultas de relatório"] },
+  },
+  {
+    id: "kubernetes-basics", skills: ["kubernetes"], title: "Learn Kubernetes Basics", description: "Tutorial oficial com conceitos de clusters, pods, deployments, serviços e escalabilidade.", level: "Iniciante", platform: "Kubernetes", url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/", cost: "Gratuito", type: "Tutorial oficial",
+    project: { title: "Aplicação disponível em Kubernetes", description: "Empacote uma aplicação, publique manifests básicos e configure escalabilidade e serviço.", technologies: ["Kubernetes", "Docker", "YAML"], features: ["Deployment e Service", "ConfigMaps", "Logs e diagnóstico", "Manifestos documentados"] },
+  },
+  {
+    id: "terraform-tutorials", skills: ["terraform"], title: "Get Started with Terraform", description: "Tutoriais oficiais da HashiCorp para escrever, validar, aplicar e versionar infraestrutura como código.", level: "Iniciante a intermediário", platform: "HashiCorp Developer", url: "https://developer.hashicorp.com/terraform/tutorials", cost: "Gratuito", type: "Trilha oficial",
+    project: { title: "Infraestrutura reproduzível", description: "Descreva recursos de laboratório declarativamente, execute revisões de plano e documente o estado.", technologies: ["Terraform", "IaC", "Cloud"], features: ["Variáveis", "Módulos", "Plano e aplicação", "README de execução"] },
+  },
+  {
+    id: "google-cloud-get-started", skills: ["gcp"], title: "Get started with Google Cloud", description: "Central oficial de introdução aos conceitos, serviços, ferramentas e primeiros projetos no Google Cloud.", level: "Iniciante", platform: "Google Cloud", url: "https://cloud.google.com/docs/get-started", cost: "Há recursos gratuitos", type: "Documentação oficial",
+    project: { title: "Aplicação web no Google Cloud", description: "Documente uma arquitetura pequena com implantação, armazenamento e monitoramento básico.", technologies: ["Google Cloud", "Cloud Run", "Observabilidade"], features: ["Arquitetura", "Deploy documentado", "Logs", "Controle de custos"] },
+  },
+  {
+    id: "github-actions", skills: ["ci/cd", "git"], title: "Understanding GitHub Actions", description: "Documentação oficial do GitHub para construir workflows de integração contínua e entrega automatizada.", level: "Iniciante a intermediário", platform: "GitHub Docs", url: "https://docs.github.com/en/actions/about-github-actions/understanding-github-actions", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "Pipeline de testes e build", description: "Crie um workflow que execute testes, validações e build em pull requests.", technologies: ["GitHub Actions", "CI/CD", "Git"], features: ["Jobs e gatilhos", "Cache de dependências", "Relatório de testes", "Proteção de branch"] },
+  },
+  {
+    id: "owasp-wstg", skills: ["cybersecurity"], title: "OWASP Web Security Testing Guide", description: "Guia aberto da OWASP para planejamento e execução de testes de segurança em aplicações web.", level: "Intermediário", platform: "OWASP", url: "https://owasp.org/www-project-web-security-testing-guide/", cost: "Gratuito", type: "Guia aberto oficial",
+    project: { title: "Checklist de segurança de aplicação web", description: "Avalie uma aplicação de demonstração contra riscos documentados e registre correções verificáveis.", technologies: ["Segurança web", "OWASP", "Pentest básico"], features: ["Threat modeling", "Controles de acesso", "Validação", "Relatório técnico"] },
+  },
+  {
+    id: "nextjs-learn", skills: ["nextjs", "react"], title: "Learn Next.js", description: "Curso oficial do Next.js sobre rotas, layouts, dados, autenticação e implantação.", level: "Iniciante a intermediário", platform: "Next.js", url: "https://nextjs.org/learn", cost: "Gratuito", type: "Curso oficial",
+    project: { title: "Aplicação full-stack no Next.js", description: "Construa uma aplicação com rotas dinâmicas, dados persistidos, autenticação e testes.", technologies: ["Next.js", "React", "TypeScript"], features: ["Rotas dinâmicas", "Server Actions", "Autenticação", "Deploy documentado"] },
+  },
 ];
 
 export const findCoursesForSkills = (skills = []) => {

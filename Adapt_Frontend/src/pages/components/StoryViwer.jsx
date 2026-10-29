@@ -49,7 +49,7 @@ const StoryViwer = ({viewStory, setViewStory}) => {
 
             case 'video':
                 return (
-                    <video onEnded={() => setViewStory(null)} src={viewStory.media_url} className='max-h-screen' controls autoPlay/>
+                    <video onEnded={() => setViewStory(null)} src={viewStory.media_url} className='max-h-screen w-full' controls autoPlay muted playsInline/>
                 );
             
             case 'text':

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { dummyUserData } from '../assets/assets'
-import { Image, X } from 'lucide-react'
+import { Image, Video, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSelector } from 'react-redux'
 import { useAuth } from '@clerk/clerk-react'
@@ -16,31 +16,65 @@ const CreatePost = () => {
   const isDark = theme === 'dark'
   const [content, setContent] = useState('')
   const [images, setImages] = useState([])
+  const [video, setVideo] = useState(null)
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const user = useSelector((state)=>state.user.value)
 
   const {getToken} = useAuth()
 
-  const handleSubmit = async () => {
-    if(!images.length && !content){
-      return toast.error('Please add at least one image or text')
+  const handleVideoSelect = (event) => {
+    const selected = event.target.files?.[0]
+    if (!selected) return
+    if (!['video/mp4', 'video/webm'].includes(selected.type)) {
+      toast.error('Selecione um vídeo MP4 ou WebM.')
+      event.target.value = ''
+      return
     }
+    const maxBytes = 100 * 1024 * 1024
+    if (selected.size > maxBytes) {
+      toast.error('O vídeo deve ter no máximo 100 MB.')
+      event.target.value = ''
+      return
+    }
+    setImages([])
+    setVideo(selected)
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl)
+    setVideoPreviewUrl(URL.createObjectURL(selected))
+  }
+
+  const removeVideo = () => {
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl)
+    setVideo(null)
+    setVideoPreviewUrl(null)
+  }
+
+  const handleSubmit = async () => {
+    if(!images.length && !video && !content.trim()){
+      return toast.error('Please add at least one image, video or text')
+    }
+    if (images.length && video) return toast.error('Use images or one video, not both')
     setLoading(true)
 
-    const postType = images.length && content ? 'text_with_image' : images.length ? 'image' : 'text'
+    const postType = video
+      ? (content.trim() ? 'text_with_video' : 'video')
+      : (images.length && content.trim() ? 'text_with_image' : images.length ? 'image' : 'text')
 
     try {
       const formData = new FormData();
       formData.append('content', content)
       formData.append('post_type', postType)
-      images.map((image)=>{
-        formData.append('images', image)
-      })
+      images.forEach((image) => formData.append('images', image))
+      if (video) formData.append('video', video)
 
       const { data } = await requestWithAuth(
         getToken,
-        (headers) => api.post('/api/post/add', formData, { headers })
+        (headers) => api.post('/api/post/add', formData, {
+          headers,
+          onUploadProgress: ({ loaded, total }) => total && setUploadProgress(Math.round((loaded / total) * 100))
+        })
       )
 
       if(data.success){
@@ -98,13 +132,34 @@ const CreatePost = () => {
             </div>
           }
 
+          {videoPreviewUrl && (
+            <div className="relative mt-4 overflow-hidden rounded-lg bg-black">
+              <video src={videoPreviewUrl} controls playsInline preload="metadata" className="w-full max-h-80 object-contain" />
+              <button type="button" onClick={removeVideo} className="absolute top-2 right-2 rounded-full bg-black/70 p-1 text-white" aria-label="Remover vídeo">
+                <X className="size-5" />
+              </button>
+            </div>
+          )}
+
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="h-2 rounded bg-slate-200 overflow-hidden" aria-label="Progresso do upload">
+              <div className="h-full bg-indigo-500 transition-all" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          )}
+
           {/* Bottom Bar */}
           <div className={`flex items-center justify-between pt-3 border-t ${isDark ? 'border-slate-700' : 'border-gray-300'}`}>
-            <label htmlFor="images" className={`flex items-center gap-2 text-sm transition cursor-pointer ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'}`}>
-              <Image className='size-6' />
-            </label>
+            <div className="flex items-center gap-4">
+              <label htmlFor="images" className={`flex items-center gap-2 text-sm transition cursor-pointer ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Image className='size-6' />
+              </label>
+              <label htmlFor="video" className={`flex items-center gap-2 text-sm transition cursor-pointer ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Video className='size-6' />
+              </label>
+            </div>
             
-            <input type="file" id="images" accept='image/*' hidden multiple onChange={(e)=>setImages([...images, ...e.target.files])}/>
+            <input type="file" id="images" accept='image/*' hidden multiple onChange={(e)=>{removeVideo(); setImages([...images, ...e.target.files])}}/>
+            <input type="file" id="video" accept='video/mp4,video/webm' hidden onChange={handleVideoSelect}/>
 
             <button disabled={loading} onClick={()=> toast.promise(
               handleSubmit(),

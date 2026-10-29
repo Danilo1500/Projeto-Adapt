@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
-import { ExternalLink, GraduationCap, LoaderCircle, Save } from "lucide-react";
+import { ExternalLink, GraduationCap, LoaderCircle, RefreshCw, Save, Settings2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../../api/axios";
 import { useTheme } from "../../context/ThemeContext";
 import { useLanguage } from "../../context/Language.js";
+import { requestWithAuth } from "../../utils/authRequest";
 
 const courseStatuses = [
   ["want", "Quero fazer"],
@@ -34,6 +36,7 @@ const getVacancyNotice = (diagnosis, t) => {
 
 export default function LearningPath() {
   const { getToken } = useAuth();
+  const navigate = useNavigate();
   const { theme } = useTheme();
   const { language, t } = useLanguage();
   const isEnglish = language === "en";
@@ -49,8 +52,10 @@ export default function LearningPath() {
 
   const load = useCallback(async () => {
     try {
-      const token = await getToken();
-      const response = await api.get("/api/user/learning-recommendations", { headers: { Authorization: `Bearer ${token}` } });
+      const response = await requestWithAuth(
+        getToken,
+        (headers) => api.get("/api/user/learning-recommendations", { headers })
+      );
       setData(response.data);
       setSkillDrafts(Object.fromEntries((response.data.courses || []).map((course) => [course.id, (course.progress.acquiredSkills || []).join(", ")])));
       setTargetRole(response.data.diagnosis.targetRole || "");
@@ -67,8 +72,10 @@ export default function LearningPath() {
   const saveProgress = async (courseId, updates) => {
     setSaving(courseId);
     try {
-      const token = await getToken();
-      await api.patch("/api/user/learning-progress", { courseId, ...updates }, { headers: { Authorization: `Bearer ${token}` } });
+      await requestWithAuth(
+        getToken,
+        (headers) => api.patch("/api/user/learning-progress", { courseId, ...updates }, { headers })
+      );
       await load();
       toast.success(t("Progresso salvo. As recomendações foram atualizadas."));
     } catch (error) {
@@ -81,11 +88,13 @@ export default function LearningPath() {
   const savePreferences = async () => {
     setSaving("preferences");
     try {
-      const token = await getToken();
-      await api.patch("/api/user/learning-preferences", {
-        targetRole,
-        desiredSkills: desiredSkills.split(",").map((skill) => skill.trim()).filter(Boolean),
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      await requestWithAuth(
+        getToken,
+        (headers) => api.patch("/api/user/learning-preferences", {
+          targetRole,
+          desiredSkills: desiredSkills.split(",").map((skill) => skill.trim()).filter(Boolean),
+        }, { headers })
+      );
       await load();
       toast.success(t("Objetivos atualizados; recomendações recalculadas."));
     } catch (error) {
@@ -101,7 +110,12 @@ export default function LearningPath() {
     <main className={`min-h-full overflow-y-auto p-5 md:p-9 ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
       <div className="mx-auto max-w-6xl space-y-6">
         <header className={`rounded-2xl border p-6 md:p-8 ${panel}`}>
-          <div className="flex items-center gap-3 text-indigo-500"><GraduationCap /><span className="text-sm font-semibold">ADAPT • APRENDIZAGEM</span></div>
+          <div className="flex items-center justify-between gap-3 text-indigo-500">
+            <span className="inline-flex items-center gap-3"><GraduationCap /><span className="text-sm font-semibold">ADAPT • APRENDIZAGEM</span></span>
+            <button type="button" onClick={load} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 px-3 py-2 text-sm text-indigo-600 disabled:opacity-60">
+              <RefreshCw size={16} /> {t("Atualizar recomendações")}
+            </button>
+          </div>
           <h1 className="mt-3 text-3xl font-bold">{t("Evolua seu portfólio")}</h1>
           <p className={`mt-2 max-w-3xl ${muted}`}>{t("Encontre competências citadas em vagas relevantes, estude com materiais oficiais e registre projetos que tornam seu aprendizado visível.")}</p>
           {data?.criteria && <p className={`mt-4 text-xs ${muted}`}>{t(data.criteria.method)} {t("{{count}} vaga(s) comparável(is) analisada(s).").replace("{{count}}", String(data.criteria.comparableVacancies))}</p>}
@@ -123,10 +137,15 @@ export default function LearningPath() {
           <p className={`mt-2 ${muted}`}>{t(data?.diagnosis.evidenceNotice || "")}</p>
           <p className={`mt-2 ${muted}`}>{t(data?.diagnosis.projectNotice || "")}</p>
           <p className={`mt-2 ${muted}`}>{getVacancyNotice(data?.diagnosis || {}, t)}</p>
-          <p className={`mt-2 text-sm ${muted}`}>{isEnglish ? "Recommendation basis:" : "Base das recomendações:"} {data?.criteria.recommendationSource === "compatible-jobs" ? t("vagas compatíveis e lacunas encontradas") : data?.criteria.recommendationSource === "published-job-requirements" ? t("requisitos publicados (sem correspondência positiva)") : data?.criteria.recommendationSource === "profile-goals" ? t("competências e objetivos do perfil; sem vagas comparáveis") : t("catálogo geral de portfólio; informe sua área para personalizar")}.</p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <p className={`mt-2 text-sm ${muted}`}>{isEnglish ? "Recommendation basis:" : "Base das recomendações:"} {data?.criteria.recommendationSource === "compatible-jobs" ? t("vagas compatíveis e lacunas encontradas") : data?.criteria.recommendationSource === "published-job-requirements" ? t("requisitos publicados (sem correspondência positiva)") : data?.criteria.recommendationSource === "profile-goals" ? t("competências e objetivos do perfil; sem vagas comparáveis") : data?.criteria.recommendationSource === "insufficient-data" ? t("dados insuficientes; complete o perfil ou informe objetivos") : t("lacunas do perfil e requisitos publicados") }.</p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {data?.diagnosis.skillsToDevelop.map(({ skill, vacancyCount }) => <span key={skill} className="rounded-full bg-indigo-100 px-3 py-1 text-sm text-indigo-800">{skill} · {vacancyCount} vaga(s)</span>)}
             {!data?.diagnosis.skillsToDevelop.length && <span className={`text-sm ${muted}`}>Não há lacunas identificadas no momento.</span>}
+            {!data?.diagnosis.identifiedSkills.length && (
+              <button type="button" onClick={() => navigate('/profile')} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                <Settings2 size={16} /> {t("Atualizar perfil")}
+              </button>
+            )}
           </div>
         </section>
 

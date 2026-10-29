@@ -23,30 +23,67 @@ export const buildLearningRecommendations = (user, jobs) => {
   const gapCorpus = compatibleJobs.length ? compatibleJobs : comparableJobs.slice(0, 20);
   const profileSkills = unique([...(user.portfolio?.languages || []), ...(user.portfolio?.libraries || []), ...(user.portfolio?.frameworks || []), ...confirmedSkills]);
   const desiredSkills = unique(user.learningPreferences?.desiredSkills || []);
-  const canonicalProfileSkills = extractKnownSkills([...profileSkills, user.bio || ""]);
   const canonicalDesiredSkills = extractKnownSkills(desiredSkills);
+  const progress = new Map((user.learningProgress || []).map((item) => [item.courseId, item]));
+  const completedSkills = [...user.learningProgress || []]
+    .filter((item) => item.status === "completed")
+    .flatMap((item) => item.acquiredSkills || []);
+  const completedOrAcquired = new Set(extractKnownSkills([...confirmedSkills, ...completedSkills]));
   const frequency = new Map();
   for (const { aiMatch } of gapCorpus) {
     for (const skill of [...aiMatch.missingRequired, ...aiMatch.missingDesired, ...aiMatch.missingInferred]) {
       frequency.set(skill, (frequency.get(skill) || 0) + 1);
     }
   }
-  // A narrow catalog used to discard every skill without a matching course. Use
-  // explicit profile goals and declared skills as a fallback; if no data exists,
-  // offer a small, clearly labeled set of general web-portfolio resources.
-  const gapSkills = [...frequency.entries()].sort((a, b) => b[1] - a[1]).map(([skill]) => skill);
-  const generalSkills = ["html", "css", "javascript", "react", "git"];
-  const recommendationSkills = unique([...gapSkills, ...canonicalDesiredSkills, ...canonicalProfileSkills, ...generalSkills]);
+  const gapSkills = [...frequency.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([skill]) => skill)
+    .filter((skill) => !completedOrAcquired.has(skill));
+  const recommendationSkills = unique([...gapSkills, ...canonicalDesiredSkills])
+    .filter((skill) => !completedOrAcquired.has(skill));
   const skillPriority = new Map(recommendationSkills.map((skill, index) => [skill.toLowerCase(), index]));
-  const courses = findCoursesForSkills(recommendationSkills)
-    .sort((a, b) => Math.min(...a.relatedSkills.map((skill) => skillPriority.get(skill) ?? 999)) - Math.min(...b.relatedSkills.map((skill) => skillPriority.get(skill) ?? 999)))
-    .slice(0, 8);
-  const progress = new Map((user.learningProgress || []).map((item) => [item.courseId, item]));
-  const source = compatibleJobs.length ? "compatible-jobs" : comparableJobs.length ? "published-job-requirements" : profileSkills.length || desiredSkills.length ? "profile-goals" : "general-catalog";
+  const completedCourseIds = new Set((user.learningProgress || [])
+    .filter((item) => item.status === "completed")
+    .map((item) => item.courseId));
+  const seenUrls = new Set();
+  const courseScores = findCoursesForSkills(recommendationSkills)
+    .filter((course) => !completedCourseIds.has(course.id))
+    .map((course) => {
+      const gapScore = course.relatedSkills.reduce((sum, skill) => sum + (frequency.get(skill) || 0), 0);
+      const desiredScore = course.relatedSkills.filter((skill) => canonicalDesiredSkills.includes(skill)).length * 10;
+      const profileScore = course.relatedSkills.filter((skill) => extractKnownSkills(profileSkills).includes(skill)).length;
+      const priorityScore = Math.min(...course.relatedSkills.map((skill) => skillPriority.get(skill) ?? 999));
+      const exactGapCount = course.relatedSkills.filter((skill) => gapSkills.includes(skill)).length;
+      const breadthPenalty = course.skills.length;
+      return { course, gapScore, desiredScore, profileScore, priorityScore, exactGapCount, breadthPenalty };
+    })
+    .sort((a, b) => b.desiredScore - a.desiredScore || b.gapScore - a.gapScore || b.exactGapCount - a.exactGapCount || a.breadthPenalty - b.breadthPenalty || a.priorityScore - b.priorityScore || a.course.title.localeCompare(b.course.title));
+  const courses = [];
+  const usedSkills = new Set();
+  for (const candidateCourse of courseScores) {
+    if (courses.length >= 8) break;
+    const normalizedUrl = candidateCourse.course.url.trim().toLowerCase().replace(/\/$/, "");
+    if (seenUrls.has(normalizedUrl)) continue;
+    const primarySkill = candidateCourse.course.relatedSkills.find((skill) => recommendationSkills.includes(skill));
+    if (candidateCourse.course.relatedSkills.length === 1 && usedSkills.has(primarySkill) && courses.length < 6) continue;
+    seenUrls.add(normalizedUrl);
+    if (primarySkill) usedSkills.add(primarySkill);
+    courses.push(candidateCourse.course);
+  }
+  if (courses.length < 8) {
+    for (const candidateCourse of courseScores) {
+      if (courses.length >= 8) break;
+      const normalizedUrl = candidateCourse.course.url.trim().toLowerCase().replace(/\/$/, "");
+      if (seenUrls.has(normalizedUrl) || courses.some(({ id }) => id === candidateCourse.course.id)) continue;
+      seenUrls.add(normalizedUrl);
+      courses.push(candidateCourse.course);
+    }
+  }
+  const source = compatibleJobs.length ? "compatible-jobs" : comparableJobs.length ? "published-job-requirements" : desiredSkills.length ? "profile-goals" : gapSkills.length ? "profile-requirements" : "insufficient-data";
   return {
     diagnosis: {
       identifiedSkills: profileSkills,
-      skillsToDevelop: [...frequency.entries()].sort((a, b) => b[1] - a[1]).map(([skill, vacancyCount]) => ({ skill, vacancyCount })),
+      skillsToDevelop: [...frequency.entries()].filter(([skill]) => !completedOrAcquired.has(skill)).sort((a, b) => b[1] - a[1]).map(([skill, vacancyCount]) => ({ skill, vacancyCount })),
       existingProjects: [],
       projectNotice: "O perfil atual não armazena projetos estruturados; as recomendações usam competências declaradas e requisitos das vagas.",
       vacancyNotice: compatibleJobs.length ? `Recomendações fundamentadas em ${compatibleJobs.length} vagas publicadas que compartilham competências com o perfil.` : comparableJobs.length ? "Nenhuma vaga teve correspondência positiva com as competências declaradas. As sugestões usam requisitos de vagas publicadas, não são apresentadas como vagas compatíveis." : "Não foram encontradas vagas comparáveis. As sugestões usam as competências do perfil, seus objetivos e materiais gerais de portfólio.",

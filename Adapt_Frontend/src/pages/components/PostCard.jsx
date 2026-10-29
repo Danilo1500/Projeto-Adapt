@@ -175,11 +175,23 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
         <div data-i18n-ignore className="text-gray-800 text-sm whitespace-normal" dangerouslySetInnerHTML={{ __html: postWithHashtags }}/>} 
 
         {/* images */}
-        <div className="grid grid-cols-2 gap-2">
+        {post.image_urls?.length > 0 && (
+          <div className="grid grid-cols-2 gap-2">
             {post.image_urls.map((img, index)=>(
-                <img src={img} key={index} className={`w-full h-48 object-cover rounded-lg ${post.image_urls.length === 1 && 'col-span-2 h-auto'}`} alt="" />
+              <img src={img} key={index} className={`w-full h-48 object-cover rounded-lg ${post.image_urls.length === 1 && 'col-span-2 h-auto'}`} alt="" />
             ))}
-        </div>
+          </div>
+        )}
+
+        {post.video_url && (
+          <video
+            src={post.video_url}
+            controls
+            playsInline
+            preload="metadata"
+            className="w-full max-h-[520px] rounded-lg bg-black object-contain"
+          />
+        )}
 
         {/* Actions */}
         <div className="flex items-center gap-4 text-gray-600 text-sm pt-2 border-t border-gray-300">

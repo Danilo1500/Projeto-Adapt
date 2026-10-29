@@ -62,7 +62,7 @@ export function DetailsStep({ formData, setFormData, onNext }: DetailsStepProps)
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="mb-6 text-gray-900 dark:text-slate-100">Detalhes da vaga</h2>
+      <h2 className="mb-6 text-card-foreground">Detalhes da vaga</h2>
 
       <div className="mb-6">
         <Label htmlFor="description">Descrição da vaga *</Label>
@@ -122,7 +122,7 @@ export function DetailsStep({ formData, setFormData, onNext }: DetailsStepProps)
         <div className="flex items-center justify-between mb-3">
           <div>
             <Label>Requisitos desejáveis</Label>
-            <p className="mt-1 text-xs text-gray-500">Diferencie conhecimentos que contam como bônus dos requisitos obrigatórios.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Diferencie conhecimentos que contam como bônus dos requisitos obrigatórios.</p>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={addDesiredRequirement}>
             <Plus className="w-4 h-4 mr-1" /> Adicionar desejável

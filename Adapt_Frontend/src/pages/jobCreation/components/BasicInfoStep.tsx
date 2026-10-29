@@ -26,7 +26,7 @@ export function BasicInfoStep({ formData, setFormData, onNext, companyLoading = 
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="mb-6 text-gray-900 dark:text-slate-100">Informações básicas da vaga</h2>
+      <h2 className="mb-6 text-card-foreground">Informações básicas da vaga</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
@@ -50,10 +50,10 @@ export function BasicInfoStep({ formData, setFormData, onNext, companyLoading = 
             value={formData.company}
             readOnly
             aria-describedby="company-help"
-            className="mt-2 bg-gray-100 dark:bg-slate-800"
+            className="mt-2 bg-muted text-muted-foreground"
             required
           />
-          <p id="company-help" className="mt-1 text-xs text-gray-500">
+          <p id="company-help" className="mt-1 text-xs text-muted-foreground">
             {companyLoading ? 'Carregando empresa…' : formData.company ? 'Empresa vinculada à sua conta.' : 'Cadastre ou sincronize sua empresa antes de publicar uma vaga.'}
           </p>
         </div>
@@ -82,7 +82,7 @@ export function BasicInfoStep({ formData, setFormData, onNext, companyLoading = 
             <SelectTrigger id="contractType" className="mt-2">
               <SelectValue />
             </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100">
+              <SelectContent className="bg-popover text-popover-foreground">
               <SelectItem value="Tempo Integral">Tempo integral</SelectItem>
               <SelectItem value="Meio Período">Meio período</SelectItem>
               <SelectItem value="Freelance">Freelance</SelectItem>
@@ -98,14 +98,14 @@ export function BasicInfoStep({ formData, setFormData, onNext, companyLoading = 
           <Label htmlFor="workMode">Modalidade de trabalho *</Label>
           <Select value={formData.workMode} onValueChange={(value) => setFormData({ ...formData, workMode: value as JobData['workMode'], isRemote: value === 'remote' })}>
             <SelectTrigger id="workMode" className="mt-2"><SelectValue /></SelectTrigger>
-            <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100"><SelectItem value="onsite">Presencial</SelectItem><SelectItem value="hybrid">Híbrido</SelectItem><SelectItem value="remote">Remoto</SelectItem></SelectContent>
+            <SelectContent className="bg-popover text-popover-foreground"><SelectItem value="onsite">Presencial</SelectItem><SelectItem value="hybrid">Híbrido</SelectItem><SelectItem value="remote">Remoto</SelectItem></SelectContent>
           </Select>
         </div>
         <div>
           <Label htmlFor="experienceLevel">Nível de experiência *</Label>
           <Select value={formData.experienceLevel} onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}>
             <SelectTrigger id="experienceLevel" className="mt-2"><SelectValue /></SelectTrigger>
-            <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100"><SelectItem value="Estágio">Estágio</SelectItem><SelectItem value="Aprendiz">Aprendiz</SelectItem><SelectItem value="Trainee">Trainee</SelectItem><SelectItem value="Júnior (0-2 anos)">Júnior (0-2 anos)</SelectItem><SelectItem value="Pleno (2-5 anos)">Pleno (2-5 anos)</SelectItem><SelectItem value="Sênior (5+ anos)">Sênior (5+ anos)</SelectItem></SelectContent>
+            <SelectContent className="bg-popover text-popover-foreground"><SelectItem value="Estágio">Estágio</SelectItem><SelectItem value="Aprendiz">Aprendiz</SelectItem><SelectItem value="Trainee">Trainee</SelectItem><SelectItem value="Júnior (0-2 anos)">Júnior (0-2 anos)</SelectItem><SelectItem value="Pleno (2-5 anos)">Pleno (2-5 anos)</SelectItem><SelectItem value="Sênior (5+ anos)">Sênior (5+ anos)</SelectItem></SelectContent>
           </Select>
         </div>
       </div>
@@ -130,11 +130,11 @@ export function BasicInfoStep({ formData, setFormData, onNext, companyLoading = 
         <div className="flex items-center gap-2">
           <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
             <SelectTrigger id="currency" className="w-20"><SelectValue /></SelectTrigger>
-          <SelectContent className="bg-white dark:bg-slate-800 dark:text-slate-100"><SelectItem value="R$">R$</SelectItem><SelectItem value="US$">US$</SelectItem><SelectItem value="€">€</SelectItem></SelectContent>
+          <SelectContent className="bg-popover text-popover-foreground"><SelectItem value="R$">R$</SelectItem><SelectItem value="US$">US$</SelectItem><SelectItem value="€">€</SelectItem></SelectContent>
           </Select>
           <Input id="salaryMin" placeholder="Mínimo" inputMode="decimal" maxLength={15} value={formData.salaryMin} onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })} />
         </div>
-        <span className="text-gray-500">até</span>
+        <span className="text-muted-foreground">até</span>
         <Input id="salaryMax" aria-label="Salário máximo" placeholder="Máximo" inputMode="decimal" maxLength={15} value={formData.salaryMax} onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })} />
       </div>
 
