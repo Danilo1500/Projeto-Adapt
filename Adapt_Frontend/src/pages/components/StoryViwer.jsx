@@ -1,9 +1,11 @@
 import { BadgeCheck, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
+import ReportContentDialog from './ReportContentDialog'
 
 const StoryViwer = ({viewStory, setViewStory}) => {
 
     const [progress, setProgress] = useState(0)
+    const [reportOpen, setReportOpen] = useState(false)
 
     useEffect(() =>{
         let timer, progressInterval;
@@ -86,11 +88,15 @@ const StoryViwer = ({viewStory, setViewStory}) => {
         <button onClick={handleClose} className='absolute top-4 right-4 text-white text-3xl font-bold focus:outline-none'>
             <X className='w-8 h-8 hover:scale-110 transition cursor-pointer'/>
         </button>
+        <button onClick={() => setReportOpen(true)} className='absolute bottom-4 right-4 rounded-lg bg-black/60 px-3 py-2 text-sm text-white'>
+            Denunciar
+        </button>
 
         {/* Content Wrapper */}
         <div className='max-w-[90vw] max-h-[90vh] flex items-center justify-center'>
             {renderContent()}
         </div>
+        <ReportContentDialog open={reportOpen} onClose={() => setReportOpen(false)} contentType="story" contentId={viewStory._id} />
 
     </div>
   )

@@ -7,6 +7,7 @@ import { useAuth } from "@clerk/clerk-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { requestWithAuth } from "../../utils/authRequest";
+import ReportContentDialog from "./ReportContentDialog";
 
 const PostCard = ({ post, showDelete = false, onDeleted }) => {
 
@@ -19,6 +20,7 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
   const [commentText, setCommentText] = useState("")
   const [commentsCount, setCommentsCount] = useState(post.comments_count ?? 0)
   const commentSubmittingRef = useRef(false)
+  const [reportOpen, setReportOpen] = useState(false)
   const currentUser = useSelector((state)=> state.user.value)
   const isOwner = currentUser?._id === post.user._id
 
@@ -207,8 +209,14 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
             <Share2 className="w-4 h-4"/>
             <span>{7}</span>
           </div>
+          {!isOwner && (
+            <button type="button" onClick={() => setReportOpen(true)} className="ml-auto text-xs text-gray-500 hover:text-red-600">
+              Denunciar
+            </button>
+          )}
 
         </div>
+        <ReportContentDialog open={reportOpen} onClose={() => setReportOpen(false)} contentType="post" contentId={post._id} />
 
         {showComments && (
           <div className="pt-2 border-t border-gray-200 space-y-3">
@@ -271,4 +279,3 @@ const PostCard = ({ post, showDelete = false, onDeleted }) => {
 };
 
 export default PostCard;
-

@@ -61,7 +61,7 @@ export const buildLearningRecommendations = (user, jobs) => {
   const courses = [];
   const usedSkills = new Set();
   for (const candidateCourse of courseScores) {
-    if (courses.length >= 8) break;
+    if (courses.length >= 12) break;
     const normalizedUrl = candidateCourse.course.url.trim().toLowerCase().replace(/\/$/, "");
     if (seenUrls.has(normalizedUrl)) continue;
     const primarySkill = candidateCourse.course.relatedSkills.find((skill) => recommendationSkills.includes(skill));
@@ -70,9 +70,9 @@ export const buildLearningRecommendations = (user, jobs) => {
     if (primarySkill) usedSkills.add(primarySkill);
     courses.push(candidateCourse.course);
   }
-  if (courses.length < 8) {
+  if (courses.length < 12) {
     for (const candidateCourse of courseScores) {
-      if (courses.length >= 8) break;
+      if (courses.length >= 12) break;
       const normalizedUrl = candidateCourse.course.url.trim().toLowerCase().replace(/\/$/, "");
       if (seenUrls.has(normalizedUrl) || courses.some(({ id }) => id === candidateCourse.course.id)) continue;
       seenUrls.add(normalizedUrl);

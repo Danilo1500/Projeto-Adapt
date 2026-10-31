@@ -5,8 +5,12 @@ const postSchema = new mongoose.Schema({
     content: {type: String },
     image_urls: [{ type: String }],
     video_url: { type: String, default: '' },
+    image_file_ids: [{ type: String, default: [] }],
+    video_file_id: { type: String, default: '' },
     video_mime_type: { type: String, default: '' },
     post_type: {type: String, enum: ['text', 'image', 'text_with_image', 'video', 'text_with_video'], required: true},
+    moderation_status: { type: String, enum: ['pending', 'approved', 'flagged', 'rejected', 'removed', 'hidden'], default: 'approved', index: true },
+    moderation_analysis: { type: mongoose.Schema.Types.Mixed, default: null },
     likes_count: [{type: String, ref: 'User'}],
     comments_count: { type: Number, default: 0 },
 }, { timestamps: true, minimize: false })

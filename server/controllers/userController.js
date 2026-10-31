@@ -351,7 +351,10 @@ export const getUserProfiles = async (req, res) => {
         if(!profile){
             return res.json({ success: false, message: "Profile not found" });
         }
-        const posts = await Post.find({ user: profileId }).populate('user')
+        const posts = await Post.find({
+            user: profileId,
+            moderation_status: { $nin: ['flagged', 'removed', 'hidden', 'rejected'] }
+        }).populate('user')
 
         res.json({ success: true, profile, posts });
     } catch (error) {

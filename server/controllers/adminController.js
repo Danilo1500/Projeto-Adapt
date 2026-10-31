@@ -3,6 +3,7 @@ import Story from "../models/Story.js";
 import Message from "../models/Message.js";
 import Job from "../models/Job.js";
 import Feedback from "../models/Feedback.js";
+import { deletePostMedia, deleteStoryMedia } from "../services/mediaLifecycle.js";
 
 const parsePagination = (req) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
@@ -137,6 +138,8 @@ export const adminDeletePost = async (req, res) => {
     if (!postId) {
       return res.status(400).json({ success: false, message: "postId is required" });
     }
+    const post = await Post.findById(postId);
+    if (post) await deletePostMedia(post);
     await Post.findByIdAndDelete(postId);
     res.json({ success: true, message: "Post deleted" });
   } catch (error) {
@@ -150,6 +153,8 @@ export const adminDeleteStory = async (req, res) => {
     if (!storyId) {
       return res.status(400).json({ success: false, message: "storyId is required" });
     }
+    const story = await Story.findById(storyId);
+    if (story) await deleteStoryMedia(story);
     await Story.findByIdAndDelete(storyId);
     res.json({ success: true, message: "Story deleted" });
   } catch (error) {

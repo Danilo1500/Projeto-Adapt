@@ -4,6 +4,7 @@ import Story from '../models/Story.js';
 import User from '../models/User.js';
 import { inngest } from '../inngest/index.js';
 import { removeUploadedFiles, validateVideoFile, VIDEO_LIMITS } from '../services/mediaValidation.js';
+import { analyzeContent } from '../services/contentModeration.js';
 
 // Add User Story
 export const addUserStory = async (req, res) => {
@@ -12,6 +13,10 @@ export const addUserStory = async (req, res) => {
         const { userId } = req.auth();
         const { content, media_type, background_color } = req.body;
         let media_url = '';
+        let media_file_id = '';
+        const text = String(content || '').trim();
+        if (!text && !media) throw new Error('O story não pode estar vazio.');
+        const analysis = await analyzeContent(text);
 
         if (!['text', 'image', 'video'].includes(media_type)) {
             throw new Error('Tipo de mídia inválido.');
@@ -34,15 +39,19 @@ export const addUserStory = async (req, res) => {
                 folder: media_type === 'video' ? 'stories/videos' : 'stories/images',
             });
             media_url = response.url;
+            media_file_id = response.fileId;
         }
 
         const story = await Story.create({
             user: userId,
             content,
             media_url,
+            media_file_id,
             media_type,
             media_mime_type: media?.mimetype || undefined,
-            background_color
+            background_color,
+            moderation_status: analysis.status === 'flagged' ? 'flagged' : 'approved',
+            moderation_analysis: analysis
         });
 
         await inngest.send({
@@ -71,7 +80,8 @@ export const getStories = async (req, res) => {
         const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
         const stories = await Story.find({
              user: { $in: userIds },
-             createdAt: { $gte: cutoff }
+             createdAt: { $gte: cutoff },
+             moderation_status: { $nin: ['flagged', 'removed', 'hidden', 'rejected'] }
         }).populate('user').sort({ createdAt: -1 });
         
         res.json({ success: true, stories });

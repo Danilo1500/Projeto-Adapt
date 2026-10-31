@@ -9,6 +9,8 @@ import { applyCompanyUpsert } from "../services/companySync.js";
 import Job from "../models/Job.js";
 import Comment from "../models/Comment.js";
 import Post from "../models/Post.js";
+import { deleteStoryMedia } from "../services/mediaLifecycle.js";
+import { cleanupExpiredEvidence } from "../services/evidenceRetention.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "Adapt-app" });
@@ -134,9 +136,20 @@ const deleteStory = inngest.createFunction(
         const in24Hours = new Date(Date.now() + 24 * 60 * 60 * 1000)
         await step.sleepUntil("wait-for-24-hours", in24Hours)
         await step.run('delete-story', async () => {
+            const story = await Story.findById(storyId)
+            if (story) await deleteStoryMedia(story)
             await Story.findByIdAndDelete(storyId)
             return { message: "Story deleted." }
         })
+    }
+)
+
+const cleanupExpiredModerationEvidence = inngest.createFunction(
+    { id: "cleanup-expired-moderation-evidence" },
+    { cron: "TZ=UTC 0 3 * * *" },
+    async () => {
+        const result = await cleanupExpiredEvidence(100);
+        return { message: "Moderation evidence cleanup completed.", ...result };
     }
 )
 
@@ -297,5 +310,6 @@ export const functions = [
     sendNotificationOfNewMessage,
     sendNotificationOfNewComment,
     upsertCompany,
-    createJob
+    createJob,
+    cleanupExpiredModerationEvidence
 ];

@@ -13,6 +13,7 @@ const tabs = [
   { id: "messages", label: "Mensagens" },
   { id: "jobs", label: "Vagas" },
   { id: "feedback", label: "Feedbacks" },
+  { id: "moderation", label: "Moderação" },
 ];
 
 const emptyEdit = { type: null, id: null, values: {} };
@@ -31,6 +32,7 @@ const AdminModeration = () => {
   const [feedbackTotal, setFeedbackTotal] = useState(0);
   const [feedbackPage, setFeedbackPage] = useState(1);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [moderationReports, setModerationReports] = useState([]);
   const [exportingFeedback, setExportingFeedback] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -116,6 +118,31 @@ const AdminModeration = () => {
       toast.error(error.message);
     } finally {
       setFeedbackLoading(false);
+    }
+  };
+
+  const loadModerationQueue = async () => {
+    try {
+      const data = await authedGet("/api/moderation/admin/queue");
+      setModerationReports(data.reports || []);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const moderateReport = async (report, action) => {
+    const justification = window.prompt(`Justificativa para "${action}":`);
+    if (!justification?.trim()) return;
+    try {
+      await authedPost("/api/moderation/admin/decision", {
+        reportId: report._id,
+        action,
+        justification: justification.trim(),
+      });
+      toast.success("Decisão registrada");
+      await loadModerationQueue();
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
@@ -225,6 +252,7 @@ const AdminModeration = () => {
 
   useEffect(() => {
     if (activeTab === "feedback") loadFeedbackReport();
+    if (activeTab === "moderation") loadModerationQueue();
   }, [activeTab, feedbackPage]);
 
   const ItemActions = ({ type, item }) => (
@@ -446,6 +474,34 @@ const AdminModeration = () => {
                 {story.media_type === "video" && story.media_url && <video src={story.media_url} className="mt-3 h-32 rounded-md object-cover" controls />}
                 {story.content && <p data-i18n-ignore className={`mt-3 whitespace-pre-wrap text-sm ${bodyTextClass}`}>{story.content}</p>}
                 <EditPanel type="stories" itemId={story._id} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && activeTab === "moderation" && (
+          <div className="mt-6 grid grid-cols-1 gap-4">
+            {moderationReports.length === 0 && <div className={mutedClass}>Nenhuma denúncia pendente.</div>}
+            {moderationReports.map((report) => (
+              <div key={report._id} className={cardClass}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className={`font-medium ${bodyTextClass}`}>{report.reason}</p>
+                    <p className={`text-xs ${mutedClass}`}>{report.contentType} · {report.status} · {report.reportCount} denúncia(s) · {moment(report.createdAt).fromNow()}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => moderateReport(report, "approved")} className="rounded bg-green-600 px-3 py-1 text-xs text-white">Aprovar</button>
+                    <button type="button" onClick={() => moderateReport(report, "hidden")} className="rounded bg-amber-600 px-3 py-1 text-xs text-white">Ocultar</button>
+                    <button type="button" onClick={() => moderateReport(report, "removed")} className="rounded bg-red-600 px-3 py-1 text-xs text-white">Remover</button>
+                    <button type="button" onClick={() => moderateReport(report, "dismissed")} className="rounded bg-slate-600 px-3 py-1 text-xs text-white">Improcedente</button>
+                  </div>
+                </div>
+                {(report.description || report.contentSnapshot) && (
+                  <p data-i18n-ignore className={`mt-3 whitespace-pre-wrap rounded-lg p-3 text-sm ${isDark ? "bg-slate-900 text-slate-300" : "bg-gray-50 text-gray-700"}`}>
+                    {report.description || report.contentSnapshot}
+                  </p>
+                )}
+                {report.mediaSnapshot && <img src={report.mediaSnapshot} alt="" className="mt-3 max-h-48 rounded-lg object-contain" />}
               </div>
             ))}
           </div>

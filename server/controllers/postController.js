@@ -3,6 +3,8 @@ import imagekit from "../configs/imageKit.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 import { removeUploadedFiles, validateVideoFile, VIDEO_LIMITS } from "../services/mediaValidation.js";
+import { analyzeContent } from "../services/contentModeration.js";
+import { deletePostMedia } from "../services/mediaLifecycle.js";
 
 // Add Post
 export const addPost = async (req, res) => {
@@ -12,6 +14,9 @@ export const addPost = async (req, res) => {
     try {
         const { userId } = req.auth();
         const { content, post_type } = req.body;
+        const text = String(content || "").trim();
+        if (!text && !images.length && !video) throw new Error("A publicação não pode estar vazia.");
+        const analysis = await analyzeContent(text);
         const allowedTypes = ['text', 'image', 'text_with_image', 'video', 'text_with_video'];
         if (!allowedTypes.includes(post_type)) throw new Error("Tipo de publicação inválido.");
         if (images.length && video) throw new Error("Publicação não pode combinar vídeo e imagens.");
@@ -21,6 +26,8 @@ export const addPost = async (req, res) => {
 
         let image_urls = [];
         let video_url = '';
+        let image_file_ids = [];
+        let video_file_id = '';
 
         if (images.length) {
             image_urls = await Promise.all(
@@ -32,6 +39,7 @@ export const addPost = async (req, res) => {
                         fileName: image.originalname,
                         folder: "posts",
                     });
+                    image_file_ids.push(response.fileId);
                     return imagekit.url({
                         path: response.filePath,
                         transformation: [
@@ -52,6 +60,7 @@ export const addPost = async (req, res) => {
                 useUniqueFileName: true,
             });
             video_url = response.url;
+            video_file_id = response.fileId;
         }
 
         await Post.create({
@@ -59,8 +68,12 @@ export const addPost = async (req, res) => {
             content,
             image_urls,
             video_url,
+            image_file_ids,
+            video_file_id,
             video_mime_type: video?.mimetype || '',
-            post_type
+            post_type,
+            moderation_status: analysis.status === "flagged" ? "flagged" : "approved",
+            moderation_analysis: analysis
         });
         res.json({ success: true, message: "Post created successfully" });
     } catch (error) {
@@ -79,7 +92,7 @@ export const getFeedPosts = async (req, res) => {
 
         // User connections and followings
         const userIds = [userId, ...user.connections, ...user.following]
-        const posts = await Post.find({ user: { $in: userIds } }).populate('user').sort({ createdAt: -1 });
+        const posts = await Post.find({ user: { $in: userIds }, moderation_status: { $nin: ['flagged', 'removed', 'hidden', 'rejected'] } }).populate('user').sort({ createdAt: -1 });
 
         res.json({ success: true, posts });
     } catch (error) {
@@ -127,6 +140,7 @@ export const deletePost = async (req, res) => {
             return res.json({ success: false, message: "Not authorized to delete this post" });
         }
 
+        await deletePostMedia(post);
         await Post.findByIdAndDelete(postId);
         return res.json({ success: true, message: "Post deleted successfully" });
     } catch (error) {

@@ -105,6 +105,54 @@ const LEARNING_RESOURCES = [
     id: "nextjs-learn", skills: ["nextjs", "react"], title: "Learn Next.js", description: "Curso oficial do Next.js sobre rotas, layouts, dados, autenticação e implantação.", level: "Iniciante a intermediário", platform: "Next.js", url: "https://nextjs.org/learn", cost: "Gratuito", type: "Curso oficial",
     project: { title: "Aplicação full-stack no Next.js", description: "Construa uma aplicação com rotas dinâmicas, dados persistidos, autenticação e testes.", technologies: ["Next.js", "React", "TypeScript"], features: ["Rotas dinâmicas", "Server Actions", "Autenticação", "Deploy documentado"] },
   },
+  {
+    id: "vitest-guide", skills: ["vitest", "testing"], title: "Vitest Getting Started", description: "Guia oficial para configurar Vitest, executar testes unitários e utilizar recursos modernos de execução.", level: "Intermediário", language: "Inglês", platform: "Vitest", url: "https://vitest.dev/guide/", cost: "Gratuito", type: "Guia oficial",
+    project: { title: "Cobertura de testes com Vitest", description: "Adicione testes unitários e de integração a regras de negócio e componentes de uma aplicação.", technologies: ["Vitest", "JavaScript", "TypeScript"], features: ["Testes unitários", "Mocks", "Cobertura", "Integração contínua"] },
+  },
+  {
+    id: "figma-help", skills: ["figma"], title: "Figma Help Center", description: "Documentação oficial de interface, componentes, protótipos e colaboração no Figma.", level: "Iniciante a avançado", language: "Inglês", platform: "Figma", url: "https://help.figma.com/hc/en-us", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "Protótipo navegável de produto", description: "Modele componentes reutilizáveis e um fluxo navegável alinhado às telas da aplicação.", technologies: ["Figma", "UI Design", "Prototipagem"], features: ["Design system básico", "Componentes", "Protótipo", "Handoff documentado"] },
+  },
+  {
+    id: "pandas-docs", skills: ["pandas", "python"], title: "Pandas Getting Started", description: "Documentação oficial para começar a analisar dados com estruturas, operações e leitura de arquivos em Pandas.", level: "Iniciante a intermediário", language: "Inglês", platform: "Pandas", url: "https://pandas.pydata.org/docs/getting_started/index.html", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "Análise exploratória com Pandas", description: "Limpe, transforme, agregue e visualize um conjunto de dados público.", technologies: ["Python", "Pandas", "Jupyter"], features: ["Leitura de dados", "Limpeza", "Agrupamentos", "Relatório reproduzível"] },
+  },
+  {
+    id: "power-bi-get-started", skills: ["power bi", "data analysis"], title: "Power BI Get Started", description: "Documentação oficial da Microsoft para importar dados, criar modelos e publicar relatórios.", level: "Iniciante", language: "Inglês", platform: "Microsoft Learn", url: "https://learn.microsoft.com/power-bi/", cost: "Há recursos gratuitos; verifique o plano", type: "Documentação oficial e trilhas Microsoft Learn",
+    project: { title: "Painel de indicadores", description: "Importe dados, crie relações e publique um painel com indicadores verificáveis.", technologies: ["Power BI", "SQL", "DAX"], features: ["Modelo de dados", "Medidas", "Visualizações", "Filtros"] },
+  },
+  {
+    id: "cypress-guide", skills: ["cypress", "testing"], title: "Cypress App Core Concepts", description: "Documentação oficial para escrever, executar e depurar testes end-to-end em aplicações web.", level: "Iniciante a intermediário", language: "Inglês", platform: "Cypress", url: "https://docs.cypress.io/app/get-started/why-cypress", cost: "Gratuito; recursos empresariais podem variar", type: "Documentação oficial",
+    project: { title: "Testes end-to-end de fluxo web", description: "Automatize login, navegação, formulários e estados de erro em uma aplicação de demonstração.", technologies: ["Cypress", "JavaScript", "Testing"], features: ["Testes de fluxo", "Asserções", "Interceptação", "Relatório"] },
+  },
+  {
+    id: "postman-learning", skills: ["postman", "api testing"], title: "Postman Learning Center", description: "Centro oficial de aprendizagem para criar requisições, coleções, testes e automações de APIs.", level: "Iniciante a intermediário", language: "Inglês", platform: "Postman", url: "https://learning.postman.com/docs/introduction/overview/", cost: "Há recursos gratuitos; recursos pagos podem variar", type: "Trilhas e documentação oficial",
+    project: { title: "Coleção de testes de API", description: "Valide autenticação, respostas, erros e contratos de uma API por meio de uma coleção executável.", technologies: ["Postman", "REST API", "JSON"], features: ["Coleção", "Variáveis", "Testes de resposta", "Runner automatizado"] },
+  },
+  {
+    id: "github-actions-docs", skills: ["github actions", "ci/cd", "git"], title: "GitHub Actions Documentation", description: "Documentação oficial para construir workflows de automação, testes, builds e deploys.", level: "Iniciante a intermediário", language: "Inglês", platform: "GitHub Docs", url: "https://docs.github.com/en/actions", cost: "Gratuito; consumo de minutos pode variar", type: "Documentação oficial",
+    project: { title: "Pipeline GitHub Actions", description: "Crie um workflow que instale dependências, execute testes e valide o build em pull requests.", technologies: ["GitHub Actions", "CI/CD", "Git"], features: ["Triggers", "Jobs", "Cache", "Artifacts"] },
+  },
+  {
+    id: "react-native-docs", skills: ["react native", "javascript", "react"], title: "React Native Getting Started", description: "Documentação oficial para configurar o ambiente e construir interfaces móveis com React Native.", level: "Iniciante a intermediário", language: "Inglês", platform: "React Native", url: "https://reactnative.dev/docs/getting-started", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "Aplicativo móvel de tarefas", description: "Implemente uma interface móvel com navegação, estados, persistência simples e testes.", technologies: ["React Native", "JavaScript", "REST"], features: ["Navegação", "Componentes nativos", "Persistência", "Consumir API"] },
+  },
+  {
+    id: "spring-guides", skills: ["spring", "java", "rest"], title: "Spring Boot Guides", description: "Guias oficiais da Spring para criar aplicações, serviços REST, persistência e configuração.", level: "Iniciante a intermediário", language: "Inglês", platform: "Spring", url: "https://spring.io/guides", cost: "Gratuito", type: "Guias oficiais",
+    project: { title: "API REST com Spring Boot", description: "Implemente uma API REST com validação, persistência, testes e documentação.", technologies: ["Java", "Spring Boot", "SQL"], features: ["Controllers REST", "Persistência", "Validação", "Testes de integração"] },
+  },
+  {
+    id: "django-tutorial", skills: ["django", "python", "rest"], title: "Django Writing Your First App", description: "Tutorial oficial para criar uma aplicação Django, modelos, views, templates e testes.", level: "Iniciante a intermediário", language: "Inglês", platform: "Django", url: "https://docs.djangoproject.com/en/stable/intro/tutorial01/", cost: "Gratuito", type: "Tutorial oficial",
+    project: { title: "Aplicação web Django", description: "Crie uma aplicação completa com autenticação, modelos, formulários, testes e administração.", technologies: ["Python", "Django", "PostgreSQL"], features: ["Models", "Views", "Forms", "Admin"] },
+  },
+  {
+    id: "linux-command-line", skills: ["linux"], title: "The Linux Command Line for Beginners", description: "Tutorial oficial da Ubuntu para navegar no sistema, manipular arquivos e executar comandos essenciais.", level: "Iniciante", language: "Inglês", platform: "Ubuntu", url: "https://ubuntu.com/tutorials/command-line-for-beginners", cost: "Gratuito", type: "Tutorial oficial",
+    project: { title: "Ambiente de desenvolvimento Linux", description: "Configure ferramentas, permissões, processos e scripts de automação em uma máquina Linux.", technologies: ["Linux", "Shell", "Docker"], features: ["Sistema de arquivos", "Permissões", "Processos", "Scripts shell"] },
+  },
+  {
+    id: "postgresql-backup", skills: ["postgresql", "sql", "backup", "indices", "modelagem de dados"], title: "PostgreSQL Backup and Restore", description: "Documentação oficial sobre estratégias de backup, recuperação lógica, manutenção e operação de PostgreSQL.", level: "Intermediário a avançado", language: "Inglês", platform: "PostgreSQL", url: "https://www.postgresql.org/docs/current/backup.html", cost: "Gratuito", type: "Documentação oficial",
+    project: { title: "Plano de backup de banco PostgreSQL", description: "Implemente backups, restauração documentada, índices e procedimentos operacionais para um banco de demonstração.", technologies: ["PostgreSQL", "SQL", "Backup"], features: ["Dump lógico", "Restauração", "Rotação", "Validação"] },
+  },
 ];
 
 export const findCoursesForSkills = (skills = []) => {
@@ -113,9 +161,13 @@ export const findCoursesForSkills = (skills = []) => {
     .filter((resource) => resource.skills.some((skill) => normalizedSkills.has(skill)))
     .map((resource) => ({
       ...resource,
+      provider: resource.provider || resource.platform,
       relatedSkills: resource.skills.filter((skill) => normalizedSkills.has(skill)),
       reason: `Material oficial para desenvolver ${resource.skills.filter((skill) => normalizedSkills.has(skill)).join(", ")}.`,
     }));
 };
 
-export const getCourseCatalog = () => LEARNING_RESOURCES.map((resource) => ({ ...resource }));
+export const getCourseCatalog = () => LEARNING_RESOURCES.map((resource) => ({
+  ...resource,
+  provider: resource.provider || resource.platform,
+}));

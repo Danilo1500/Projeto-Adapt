@@ -13,6 +13,7 @@ import companyRouter from './routes/companyRoutes.js';
 import jobRouter from './routes/jobRoutes.js';
 import commentRouter from './routes/commentRoutes.js';
 import adminRouter from './routes/adminRoutes.js';
+import moderationRouter from './routes/moderationRoutes.js';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/company', companyRouter)
 app.use('/api/job', jobRouter)
 app.use('/api/comment', commentRouter)
 app.use('/api/admin', adminRouter)
+app.use('/api/moderation', moderationRouter)
 
 const PORT = process.env.PORT || 4000;
 
